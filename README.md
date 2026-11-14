@@ -85,7 +85,7 @@ sbx run shell \
 
 | Event | What it does |
 |---|---|
-| Pull request | Builds both kits, pushes nothing. |
+| Pull request | Builds both kits to a local OCI layout and validates them with `kit-tck`; pushes nothing. |
 | Push of a `v*` tag | Publishes `:<version from the kit's descriptor>` and `:latest`. A version that already exists is skipped, so a published version is immutable. |
 | Manual run (**Actions → publish-kits → Run workflow**) on `main` | Publishes `:edge` and `:sha-<short>`. On any other branch it only builds. |
 
@@ -93,7 +93,7 @@ Commits to `main` don't publish anything on their own.
 
 To release a kit, bump `version:` in its descriptor (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`), merge, then push a tag (`git tag v0.2.0 && git push origin v0.2.0`). The git tag only triggers the release; each kit's version comes from its own descriptor, so the two can move independently.
 
-After each publish the workflow runs `kit-tck validate` (the specification's conformance checker, pinned and checksum-verified) on the artifact that actually reached the registry. The descriptors' `sourceUrl` becomes the `org.opencontainers.image.source` annotation, which is what links the packages to this repository.
+The workflow runs `kit-tck validate` (the specification's conformance checker, pinned and checksum-verified) every time: on pull requests against the built OCI layout, and after each publish against the artifact that actually reached the registry. The descriptors' `sourceUrl` becomes the `org.opencontainers.image.source` annotation, which is what links the packages to this repository.
 
 By default `sbx` only installs kits from `docker.io/` and `dhi.io/` (`kit.allowedSources`). To use these references, allow the namespace:
 

@@ -8,7 +8,8 @@ name: publish-kits
 #
 # What gets pushed, by event:
 #
-#   pull request          nothing: both kits are built, to prove they still build
+#   pull request          nothing: both kits are built to a local OCI layout and
+#                         checked with kit-tck, so a broken kit fails the PR
 #   push of a v* tag      :<version from the kit's descriptor> and :latest
 #   manual run on main    :edge and :sha-<short> (elsewhere: build only)
 #
@@ -154,11 +155,16 @@ jobs:
           sbom: false
           push: ${{ steps.meta.outputs.publish == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
+          # When nothing is pushed, export the kit as an OCI layout (a directory)
+          # so kit-tck can judge exactly what would have been published. The
+          # layout names the image by its tag, ci-build.
+          outputs: ${{ steps.meta.outputs.publish != 'true' && format('type=oci,dest={0}/kit-layout,tar=false', runner.temp) || '' }}
 
-      # The frontend's own checks cannot see metadata that an exporter or a
-      # registry drops, so check the artifact that was actually published.
+      # kit-tck is the spec's conformance checker. On a pull request it reads the
+      # OCI layout above; after a publish it reads the registry, because the
+      # frontend's own checks cannot see metadata an exporter or a registry drops.
       - name: Install kit-tck
-        if: steps.meta.outputs.publish == 'true' && steps.exists.outputs.skip != 'true'
+        if: steps.exists.outputs.skip != 'true'
         run: |
           set -euo pipefail
           base="https://github.com/docker/sandbox-kit-spec/releases/download/v${KIT_TCK_VERSION}"
@@ -171,11 +177,17 @@ jobs:
           tar -xzf "$archive"
           echo "$RUNNER_TEMP/kit-tck" >> "$GITHUB_PATH"
 
-      - name: Validate the published kit
-        if: steps.meta.outputs.publish == 'true' && steps.exists.outputs.skip != 'true'
+      - name: Validate the kit with kit-tck
+        if: steps.exists.outputs.skip != 'true'
         env:
+          PUBLISH: ${{ steps.meta.outputs.publish }}
           PRIMARY: ${{ steps.meta.outputs.primary }}
-        run: kit-tck validate "$PRIMARY"
+        run: |
+          if [ "$PUBLISH" = "true" ]; then
+            kit-tck validate "$PRIMARY"
+          else
+            kit-tck validate --layout "$RUNNER_TEMP/kit-layout" ci-build
+          fi
 
       - name: Summary
         if: always()
@@ -189,7 +201,7 @@ jobs:
           {
             echo "### ${NAME} ${VERSION}"
             if [ "$PUBLISH" != "true" ]; then
-              echo "Built only (nothing pushed)."
+              echo "Built and checked with kit-tck from an OCI layout (nothing pushed)."
             elif [ "$SKIP" = "true" ]; then
               echo "Skipped: this version is already published."
             else
