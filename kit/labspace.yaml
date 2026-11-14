@@ -110,10 +110,9 @@ capabilities:
         # Every boot. Idempotent.
         - command: /opt/labspace/bin/labspace-stage.sh
           env: [WORKSPACE_DIR, SANDBOX_NAME, LABSPACE_DEV_MODE]
-          description: Stage <workspace>/labspace as the instructions and write metadata
+          description: Stage the lab (workspace, content kit, or the built-in getting-started lab) and write metadata
 
         - command: /opt/labspace/bin/labspace-ide.sh
-          env: [WORKSPACE_DIR]
           background: true
           description: Start code-server on :8085 opened on <workspace>/project
 

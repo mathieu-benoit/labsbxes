@@ -1,0 +1,6 @@
+# Keep the build context to the lab's content.
+*
+!labspace
+!project
+!hello-lab.yaml
+!hello-lab.dockerfile
