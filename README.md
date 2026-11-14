@@ -1,6 +1,6 @@
 # Labspace on Docker Sandboxes
 
-Run a [Labspace](https://github.com/dockersamples/labspace-infra) (instructions on the left, VS Code on the right, Docker available to the learner) with `sbx run` instead of a seven-container `docker compose up`.
+Run a [Labspace](https://github.com/dockersamples/labspace-infra) (instructions on the left, VS Code on the right, Docker available to the learner) with `sbx run` instead of a six-container `docker compose up`. See [docs/architecture.md](docs/architecture.md) for diagrams of both setups.
 
 The infrastructure is a single [Sandbox Kit](https://github.com/docker/sandbox-kit-spec) (v3 mixin) that layers onto the built-in `shell` agent.
 
@@ -105,6 +105,8 @@ New GHCR packages can start out private. After the first publish, check each pac
 
 ## What changed compared to labspace-infra
 
+[docs/architecture.md](docs/architecture.md) has a diagram of each setup and a side-by-side summary.
+
 | labspace-infra (Compose) | This kit | Why |
 |---|---|---|
 | `socket-proxy` | **Removed** | The sandbox is a microVM with its own Docker engine (`dockerd@1`). The learner's `docker` never reaches the host engine, so there is nothing to filter, label, allowlist or remap. Bind mounts of the project folder just work, since the engine and the files share a filesystem. |
@@ -114,10 +116,10 @@ New GHCR packages can start out private. After the first publish, check each pac
 | `interface` | **Kept, unchanged** | Reused from the published `dockersamples/labspace-interface` image, copied into the overlay at build time. The built-in `shell` kit (Debian 13) has no Node, so the overlay also carries the `node` binary from `node:24-bookworm-slim`. |
 | `workspace` (code-server) | **Kept, built into the overlay** | Same approach as the `code-server` kit in sbx-kits-contrib: pinned install at build time, no download at create. |
 | `support-vscode-extension` | **Kept, unchanged** | Reused from `dockersamples/labspace-support-vscode-extension`. The JWT + unix socket between interface and IDE still works, now between two processes in one sandbox. |
-| `marlin-mock` | **Removed** | Analytics are off (`analytics_enabled: false`). |
-| 4 named volumes, 1 network, 5 `configs` | **None** | |
+| `marlin-mock` (development stack only) | **Removed** | Analytics are off (`analytics_enabled: false`). |
+| 5 named volumes, 1 network, 5 `configs` | **None** | |
 
-Net: 7 containers and 5 volumes become 2 processes (`node`, `code-server`) plus the sandbox's own engine.
+Net: the 6 containers and 5 volumes of `compose.run.yaml` become 2 processes (`node`, `code-server`) plus the sandbox's own engine.
 
 ## Layout
 
