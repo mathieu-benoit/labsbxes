@@ -5,7 +5,7 @@ Run a [Labspace](https://github.com/dockersamples/labspace-infra) (instructions 
 The infrastructure is a single [Sandbox Kit](https://github.com/docker/sandbox-kit-spec) (v3 mixin) that layers onto the built-in `shell` agent.
 
 ```bash
-sbx run shell --kit ./kit -p 3030:3030 -p 8085:8085 --name my-lab ./examples/hello-lab
+sbx run shell --kit ./kit -p 3030:3030 -p 8085:8085 -p 3000:3000 --name my-lab ./examples/hello-lab
 ```
 
 Then open http://localhost:3030.
@@ -28,7 +28,7 @@ Running a lab from a workspace folder is for authoring and demos. To hand a lab 
 
 ```bash
 # from any folder; the lab content comes from the kit, not from the workspace
-sbx run shell --kit ./kit --kit ./examples/hello-lab -p 3030:3030 -p 8085:8085
+sbx run shell --kit ./kit --kit ./examples/hello-lab -p 3030:3030 -p 8085:8085 -p 3000:3000
 ```
 
 [examples/hello-lab](examples/hello-lab) is both a content repo and a content kit: [hello-lab.yaml](examples/hello-lab/hello-lab.yaml) (a mixin that `requires` the Labspace kit and `provides` `labspace-content`) and [hello-lab.dockerfile](examples/hello-lab/hello-lab.dockerfile) (`FROM scratch`, copies `labspace/` and `project/` to `/opt/labspace/content`). To make your own lab a kit, add those two files to its repo, adjusting the name and version.
@@ -47,19 +47,19 @@ A `kind: set` merges the two into one published kit. Publish both kits to a regi
 schemaVersion: "3"
 kind: set
 displayName: Hello Labspace (ready to run)
-version: "0.1.1"
+version: "0.1.2"
 kits:
-  - ref: docker.io/<you>/labspace:0.1.1
-  - ref: docker.io/<you>/hello-lab:0.1.1
+  - ref: docker.io/<you>/labspace:0.1.2
+  - ref: docker.io/<you>/hello-lab:0.1.2
 ```
 
 ```bash
-docker buildx build --builder kit-builder kit -f kit/labspace.yaml -t docker.io/<you>/labspace:0.1.1 --push
-docker buildx build --builder kit-builder examples/hello-lab -f examples/hello-lab/hello-lab.yaml -t docker.io/<you>/hello-lab:0.1.1 --push
-docker buildx build --builder kit-builder . -f hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.1 --push
+docker buildx build --builder kit-builder kit -f kit/labspace.yaml -t docker.io/<you>/labspace:0.1.2 --push
+docker buildx build --builder kit-builder examples/hello-lab -f examples/hello-lab/hello-lab.yaml -t docker.io/<you>/hello-lab:0.1.2 --push
+docker buildx build --builder kit-builder . -f hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.2 --push
 
 # learners:
-sbx run shell --kit docker.io/<you>/hello-lab-set:0.1.1 -p 3030:3030 -p 8085:8085
+sbx run shell --kit docker.io/<you>/hello-lab-set:0.1.2 -p 3030:3030 -p 8085:8085 -p 3000:3000
 ```
 
 `kit-builder` is a `docker-container` builder (`docker buildx create --name kit-builder --driver docker-container --bootstrap`), as in the [spec README](https://github.com/docker/sandbox-kit-spec#building-a-kit).
@@ -78,9 +78,9 @@ The published set is one ordinary mixin that pins both members by digest and car
 ```bash
 # from an empty folder
 sbx run shell \
-  --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.1 \
-  --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.1 \
-  -p 3030:3030 -p 8085:8085
+  --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.2 \
+  --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.2 \
+  -p 3030:3030 -p 8085:8085 -p 3000:3000
 ```
 
 | Event | What it does |
@@ -149,7 +149,7 @@ Logs: `sbx exec my-lab -- cat /tmp/labspace-ui.log /tmp/labspace-ide.log`.
 | Arg | Default | Meaning |
 |---|---|---|
 | `devMode` | `false` | `--kit-arg devMode=true` reads `<workspace>/labspace` live, so editing a markdown file on the host and reloading the page is enough. |
-| `appPort` | `3000` | Extra port published for an app the learner runs. `--kit-arg appPort=8080`. |
+| `appPort` | `3000` | Extra port published for an app the learner runs, on a random host port (`sbx ports <name>`). For lab links such as `:tabLink{href="http://localhost:3000"}` to work, also pin it: `-p 3000:3000`. `--kit-arg appPort=8080` changes the port. |
 | `codeServerVersion` | `4.140.0` | Build-time pin. |
 
 Egress is limited to Docker Hub (for image pulls) and the Open VSX marketplace. A lab that needs more declares it in its own network policy (`sbx policy`), or in a content kit.

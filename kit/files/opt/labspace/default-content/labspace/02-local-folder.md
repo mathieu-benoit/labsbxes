@@ -31,4 +31,5 @@ sbx run shell --kit ./kit --kit-arg devMode=true -p 3030:3030 -p 8085:8085 --nam
 
 - The learner's edits to `project/` are written straight to your folder on the host.
 - A folder that already works as a lab under the Docker `labspace-infra` project works here unchanged.
+- If your lab links to an app on `localhost` (for example `:tabLink[the app]{href="http://localhost:3000"}`), publish that port on the same host port when you start the sandbox: `-p 3000:3000`.
 - To start from a working example, copy [examples/hello-lab](https://github.com/mathieu-benoit/labsbxes/tree/main/examples/hello-lab).
