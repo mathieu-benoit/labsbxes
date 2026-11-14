@@ -1,0 +1,23 @@
+# syntax=docker/sandbox-kit:3
+#
+# The content of a lab as a kit. It carries the lab's two folders and nothing
+# else; everything that runs them comes from the Labspace kit (../../kit).
+#
+#   sbx run shell --kit <labspace kit> --kit <this kit>
+schemaVersion: "3"
+kind: mixin
+
+displayName: Hello Labspace (content)
+description: >-
+  The "Hello Labspace on Docker Sandboxes" lab: instructions and starter project,
+  to be run by the Labspace kit.
+
+version: "1.0.0"
+
+# The Labspace kit provides `labspace`. Composing this kit without it fails at
+# resolution instead of producing a sandbox with files and nothing to show them.
+requires: ["labspace >= 0.1.0"]
+
+# One lab per sandbox: a second content kit provides the same name, and the
+# runtime refuses the composition.
+provides: ["labspace-content@1.0.0"]

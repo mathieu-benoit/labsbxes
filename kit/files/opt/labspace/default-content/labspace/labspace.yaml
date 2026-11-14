@@ -1,0 +1,18 @@
+metadata:
+  id: sbx-labspace/getting-started
+  contentVersion: 0.1.0
+
+title: Labspace on Docker Sandboxes
+description: >
+  No lab was loaded, so this is the built-in getting-started lab. It shows the
+  ways to give this sandbox a lab to run.
+
+sections:
+  - title: Getting started
+    contentPath: 01-getting-started.md
+  - title: "Option 1: a local folder"
+    contentPath: 02-local-folder.md
+  - title: "Option 2: a content kit"
+    contentPath: 03-content-kit.md
+  - title: "Option 3: one reference"
+    contentPath: 04-one-reference.md
