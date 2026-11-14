@@ -11,6 +11,10 @@ description: >-
 
 version: "0.1.0"
 
+# Becomes the org.opencontainers.image.source annotation, which is what links
+# the published GHCR package to this repository.
+sourceUrl: https://github.com/mathieu-benoit/labsbxes
+
 # Layered onto the built-in `shell` agent (or any workload that carries a
 # Docker engine, bash and the `agent` user). Nothing is required by name: the
 # engine is asked for through dockerd@1 below.

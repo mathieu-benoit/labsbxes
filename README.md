@@ -66,6 +66,41 @@ sbx run shell --kit docker.io/<you>/hello-lab-set:1.0.0 -p 3030:3030 -p 8085:808
 
 The published set is one ordinary mixin that pins both members by digest and carries the merged capabilities and hooks. By default `sbx` only installs kits from `docker.io/` and `dhi.io/` (`kit.allowedSources`).
 
+## Published kits (GitHub Actions)
+
+[.github/workflows/publish-kits.yaml](.github/workflows/publish-kits.yaml) builds both kits for `linux/amd64` and `linux/arm64` and publishes them to this repository's container registry:
+
+| Kit | Reference | Source |
+|---|---|---|
+| Labspace runtime | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/](kit) |
+| `hello-lab` content | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/](examples/hello-lab) |
+
+```bash
+# from an empty folder
+sbx run shell \
+  --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.0 \
+  --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:1.0.0 \
+  -p 3030:3030 -p 8085:8085
+```
+
+| Event | What it does |
+|---|---|
+| Pull request | Builds both kits, pushes nothing. |
+| Push to `main` | Publishes `:edge` and `:sha-<short>`. |
+| Push of a `v*` tag | Publishes `:<version from the kit's descriptor>` and `:latest`. A version that already exists is skipped, so a published version is immutable. |
+
+To release a kit, bump `version:` in its descriptor (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`), merge, then push a tag (`git tag v0.2.0 && git push origin v0.2.0`). The git tag only triggers the release; each kit's version comes from its own descriptor, so the two can move independently.
+
+After each publish the workflow runs `kit-tck validate` (the specification's conformance checker, pinned and checksum-verified) on the artifact that actually reached the registry. The descriptors' `sourceUrl` becomes the `org.opencontainers.image.source` annotation, which is what links the packages to this repository.
+
+By default `sbx` only installs kits from `docker.io/` and `dhi.io/` (`kit.allowedSources`). To use these references, allow the namespace:
+
+```bash
+sbx settings set kit.allowedSources '["docker.io/","dhi.io/","ghcr.io/mathieu-benoit/"]'
+```
+
+New GHCR packages can start out private. After the first publish, check each package's visibility under the repository's **Packages** and make it public if learners should be able to pull it without signing in.
+
 ## What changed compared to labspace-infra
 
 | labspace-infra (Compose) | This kit | Why |
