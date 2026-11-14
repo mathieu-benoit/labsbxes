@@ -47,19 +47,19 @@ A `kind: set` merges the two into one published kit. Publish both kits to a regi
 schemaVersion: "3"
 kind: set
 displayName: Hello Labspace (ready to run)
-version: "1.0.0"
+version: "0.1.1"
 kits:
-  - ref: docker.io/<you>/labspace:0.1.0
-  - ref: docker.io/<you>/hello-lab:1.0.0
+  - ref: docker.io/<you>/labspace:0.1.1
+  - ref: docker.io/<you>/hello-lab:0.1.1
 ```
 
 ```bash
-docker buildx build --builder kit-builder kit -f kit/labspace.yaml -t docker.io/<you>/labspace:0.1.0 --push
-docker buildx build --builder kit-builder examples/hello-lab -f examples/hello-lab/hello-lab.yaml -t docker.io/<you>/hello-lab:1.0.0 --push
-docker buildx build --builder kit-builder . -f hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:1.0.0 --push
+docker buildx build --builder kit-builder kit -f kit/labspace.yaml -t docker.io/<you>/labspace:0.1.1 --push
+docker buildx build --builder kit-builder examples/hello-lab -f examples/hello-lab/hello-lab.yaml -t docker.io/<you>/hello-lab:0.1.1 --push
+docker buildx build --builder kit-builder . -f hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.1 --push
 
 # learners:
-sbx run shell --kit docker.io/<you>/hello-lab-set:1.0.0 -p 3030:3030 -p 8085:8085
+sbx run shell --kit docker.io/<you>/hello-lab-set:0.1.1 -p 3030:3030 -p 8085:8085
 ```
 
 `kit-builder` is a `docker-container` builder (`docker buildx create --name kit-builder --driver docker-container --bootstrap`), as in the [spec README](https://github.com/docker/sandbox-kit-spec#building-a-kit).
@@ -79,7 +79,7 @@ The published set is one ordinary mixin that pins both members by digest and car
 # from an empty folder
 sbx run shell \
   --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.1 \
-  --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:1.0.0 \
+  --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.1 \
   -p 3030:3030 -p 8085:8085
 ```
 
@@ -91,7 +91,7 @@ sbx run shell \
 
 Commits to `main` don't publish anything on their own.
 
-To release a kit, bump `version:` in its descriptor (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`), merge, then push a tag (`git tag v0.2.0 && git push origin v0.2.0`). The git tag only triggers the release; each kit's version comes from its own descriptor, so the two can move independently.
+The two kits are versioned **in lockstep**. To release, bump `version:` to the same value in both descriptors (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`), merge, then push the matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The workflow's first job fails the run if the two versions differ, or if the tag doesn't name them (`v0.2.0` must mean `0.2.0`). The `v` is only on the git tag; the published image tags have none (`:0.2.0`), as the kit spec requires.
 
 The workflow runs `kit-tck validate` (the specification's conformance checker, pinned and checksum-verified) every time: on pull requests against the built OCI layout, and after each publish against the artifact that actually reached the registry. The descriptors' `sourceUrl` becomes the `org.opencontainers.image.source` annotation, which is what links the packages to this repository.
 

@@ -15,9 +15,13 @@ name: publish-kits
 #
 # Commits to main do not publish anything on their own.
 #
+# The two kits are versioned in lockstep: both descriptors carry the same
+# `version:`, and a release tag must name it (v0.1.1 releases 0.1.1). The
+# `versions` job fails the run otherwise, before anything is built.
+#
 # A release (v* tag) never overwrites a version that already exists: a kit whose
-# descriptor `version:` was not bumped is skipped, so a published version always
-# means the same content.
+# version is already published is skipped, so a published version always means
+# the same content.
 
 on:
   pull_request:
@@ -44,8 +48,49 @@ env:
   KIT_TCK_VERSION: 3.0.0-m.12
 
 jobs:
+  versions:
+    name: versions in lockstep
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check both kits share one version, and the tag names it
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+
+          # Same top-level `version:` extraction as the kits job.
+          read_version() {
+            sed -n 's/^version:[[:space:]]*"\{0,1\}\([^"[:space:]#]*\).*/\1/p' "$1" | head -n 1
+          }
+          labspace="$(read_version kit/labspace.yaml)"
+          hello_lab="$(read_version examples/hello-lab/hello-lab.yaml)"
+          echo "labspace:  ${labspace:-<none>}"
+          echo "hello-lab: ${hello_lab:-<none>}"
+
+          if [ -z "$labspace" ] || [ "$labspace" != "$hello_lab" ]; then
+            echo "::error::The kits must share one version: kit/labspace.yaml says '${labspace}', examples/hello-lab/hello-lab.yaml says '${hello_lab}'."
+            exit 1
+          fi
+
+          if [[ "$REF" == refs/tags/v* ]]; then
+            tag_version="${REF#refs/tags/v}"
+            if [ "$tag_version" != "$labspace" ]; then
+              echo "::error::Release tag v${tag_version} does not match the kits' version ${labspace}. Tag v${labspace}, or bump version: in both descriptors."
+              exit 1
+            fi
+          fi
+
+          echo "OK: both kits are ${labspace}."
+
   kits:
     name: ${{ matrix.name }}
+    needs: versions
     runs-on: ubuntu-latest
     permissions:
       contents: read
