@@ -58,19 +58,13 @@ capabilities:
     optional: true
     description: Private Docker engine for the lab (docker, compose, buildx, Testcontainers)
 
-  # The interface and the IDE. The runtime allocates the host port; pin them
-  # with `sbx run ... -p 3030:3030 -p 8085:8085` (the interface embeds the IDE
-  # at http://localhost:8085, so that one has to be pinned).
+  # The one published port: the gateway, which serves the interface and, under
+  # /ide/, the IDE. The runtime allocates the host port (see `sbx ports <name>`);
+  # pin it with `sbx run ... -p 3030:3030` if you want http://localhost:3030.
   - type: com.docker.sandbox/port@1
     config:
-      name: labspace-ui
+      name: labspace
       container: 3030
-      transport: tcp
-
-  - type: com.docker.sandbox/port@1
-    config:
-      name: labspace-ide
-      container: 8085
       transport: tcp
 
   - type: com.docker.sandbox/port@1
@@ -115,9 +109,13 @@ capabilities:
         - command: /opt/labspace/bin/labspace-ide.sh
           env: [WORKSPACE_DIR]
           background: true
-          description: Start code-server on :8085 opened on <workspace>/project
+          description: Start code-server on 127.0.0.1:8085 (internal) opened on <workspace>/project
 
         - command: /opt/labspace/bin/labspace-ui.sh
           env: [LABSPACE_DEV_MODE]
           background: true
-          description: Start the Labspace interface on :3030
+          description: Start the Labspace interface on :3031 (internal)
+
+        - command: /opt/labspace/bin/labspace-gateway.sh
+          background: true
+          description: Serve the interface and, under /ide/, the IDE on the one published port :3030

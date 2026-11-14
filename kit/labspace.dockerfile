@@ -60,6 +60,22 @@ USER root
 COPY --from=interface /usr/local/app /out/opt/labspace/interface
 COPY --from=node /usr/local/bin/node /out/opt/labspace/bin/node
 
+# The client hard-codes the IDE's address as http://localhost:8085. Serve the IDE
+# under the same origin instead (see labspace-gateway.mjs), so only one port has
+# to be published. Guarded both ways: if an upstream release stops containing
+# that string the build fails here, rather than shipping a lab whose IDE panel
+# silently points at a port nobody published.
+RUN <<'EOF'
+set -eu
+cd /out/opt/labspace/interface/public/assets
+grep -l 'http://localhost:8085' *.js
+sed -i 's#http://localhost:8085#/ide/#g' *.js
+if grep -q 'localhost:8085' *.js; then
+  echo "interface client still references localhost:8085" >&2
+  exit 1
+fi
+EOF
+
 # Scripts + VS Code user settings.
 COPY files/ /out/
 
