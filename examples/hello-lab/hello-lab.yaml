@@ -14,6 +14,10 @@ description: >-
 
 version: "1.0.0"
 
+# Becomes the org.opencontainers.image.source annotation, which is what links
+# the published GHCR package to this repository.
+sourceUrl: https://github.com/mathieu-benoit/labsbxes
+
 # The Labspace kit provides `labspace`. Composing this kit without it fails at
 # resolution instead of producing a sandbox with files and nothing to show them.
 requires: ["labspace >= 0.1.0"]
