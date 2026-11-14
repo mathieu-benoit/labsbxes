@@ -9,7 +9,7 @@ description: >-
   Docker engine. Point it at a content folder that has a labspace/ and a
   project/ directory. Replaces the labspace-infra Compose stack.
 
-version: "0.1.0"
+version: "0.1.1"
 
 # Becomes the org.opencontainers.image.source annotation, which is what links
 # the published GHCR package to this repository.
@@ -19,7 +19,7 @@ sourceUrl: https://github.com/mathieu-benoit/labsbxes
 # Docker engine, bash and the `agent` user). Nothing is required by name: the
 # engine is asked for through dockerd@1 below.
 provides:
-  - "labspace@0.1.0"
+  - "labspace@0.1.1"
   - "code-server@${{ kit.args.codeServerVersion }}"
 
 args:

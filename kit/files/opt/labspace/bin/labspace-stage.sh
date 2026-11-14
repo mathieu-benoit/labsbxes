@@ -74,17 +74,33 @@ fi
 
 # Read by the interface's analytics service at boot. Analytics stay off: there
 # is no Docker Desktop preference to inherit inside a sandbox.
-LABSPACE_ID="$(sed -n 's/^[[:space:]]*id:[[:space:]]*//p' "$SRC_LABSPACE/labspace.yaml" | head -n 1 | tr -d "\"'")"
-cat > "$SUPPORT/metadata/metadata.json" <<EOF
-{
-  "labspace_mode": "$([ "${LABSPACE_DEV_MODE:-false}" = "true" ] && echo dev || echo standard)",
-  "labspace_id": "${LABSPACE_ID:-unknown}",
-  "source_repo": "",
-  "content_version": "",
-  "infra_version": "sbx-kit-0.1.0",
-  "content_source": "$SOURCE",
-  "sandbox_name": "${SANDBOX_NAME:-}",
-  "uuids": { "dd": null, "hub": null },
-  "analytics_enabled": false
-}
-EOF
+#
+# Serialized with JSON.stringify rather than by pasting shell strings into JSON:
+# a lab's labspace.yaml can have CRLF line endings (any Windows checkout) or
+# quotes, and a single stray control character makes the interface crash at
+# startup, which leaves nothing listening on :3030.
+LABSPACE_ID="$(sed -n 's/^[[:space:]]*id:[[:space:]]*//p' "$SRC_LABSPACE/labspace.yaml" | head -n 1 | tr -d "\"'\r")"
+# The kit's own descriptor, staged by the kit frontend, says which version runs.
+INFRA_VERSION="$(sed -n 's/^version:[[:space:]]*"\{0,1\}\([^"[:space:]]*\).*/\1/p' /usr/share/sandbox/kit/labspace/kit.yaml 2>/dev/null | head -n 1 | tr -d '\r')"
+LABSPACE_MODE=standard
+if [ "${LABSPACE_DEV_MODE:-false}" = "true" ]; then
+  LABSPACE_MODE=dev
+fi
+
+LABSPACE_ID="$LABSPACE_ID" INFRA_VERSION="$INFRA_VERSION" LABSPACE_MODE="$LABSPACE_MODE" \
+CONTENT_SOURCE="$SOURCE" SANDBOX_NAME="${SANDBOX_NAME:-}" \
+/opt/labspace/bin/node -e '
+const e = process.env;
+const metadata = {
+  labspace_mode: e.LABSPACE_MODE,
+  labspace_id: e.LABSPACE_ID || "unknown",
+  source_repo: "",
+  content_version: "",
+  infra_version: "sbx-kit-" + (e.INFRA_VERSION || "unknown"),
+  content_source: e.CONTENT_SOURCE,
+  sandbox_name: e.SANDBOX_NAME,
+  uuids: { dd: null, hub: null },
+  analytics_enabled: false,
+};
+require("node:fs").writeFileSync(process.argv[1], JSON.stringify(metadata, null, 2) + "\n");
+' "$SUPPORT/metadata/metadata.json"

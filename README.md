@@ -78,7 +78,7 @@ The published set is one ordinary mixin that pins both members by digest and car
 ```bash
 # from an empty folder
 sbx run shell \
-  --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.0 \
+  --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.1 \
   --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:1.0.0 \
   -p 3030:3030 -p 8085:8085
 ```
