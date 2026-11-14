@@ -78,13 +78,17 @@ Tested with sbx 0.53 on Windows, using `examples/hello-lab`:
 | Run button path: `POST .../command` → JWT → unix socket → command typed in the IDE terminal | Pass |
 | Private Docker engine inside the sandbox (`docker info`) | Pass |
 | `port@1` publishing (`appPort` 3000 → ephemeral host port; 3030/8085 pinned with `-p`) | Pass |
-| `docker pull` / `docker run` from the lab | **Blocked by governance, see below** |
-| IDE embedded in the interface at `localhost:8085` | Not tested (that port was in use on the test machine) |
-| Save button, open-file links, `devMode`, Windows path in `WORKSPACE_DIR` beyond the IDE opening it | Not tested |
+| `docker pull` / `docker run -p 3000:80 nginx:alpine` inside the sandbox, reached from the host through the `appPort` binding | Pass |
+| IDE embedded in the interface at `localhost:8085` (split view), with Run, Save and the open-file link clicked in the real UI | Pass |
+| `devMode=true`: a markdown edit on the host shows up in the interface without a restart | Pass |
+| `sbx stop` then `sbx run --name ... -d`: services come back, hooks re-run cleanly, pulled images are still there | Pass |
+| Workspace without `labspace/labspace.yaml`: startup warns with the fix, sandbox still starts | Pass |
+| Running the same kit twice on one host, ports pinned to non-default values (3031/8086) | Pass for the interface and IDE; the embedded IDE panel only loads on 8085 |
+| macOS / Linux hosts, `--cloud` sandboxes, content bigger than the sample | Not tested |
 
 ### Kit network rules and org governance
 
-The kit declares `network-policy@1` (Docker Hub for image pulls, Open VSX for extensions). On a machine under a managed governance policy with default-deny, those rules were **not** in the sandbox's active policy (`sbx policy ls <name>` listed only the org and local rules), and `docker pull` failed with `403 Forbidden` from `registry-1.docker.io`. `sbx policy log <name>` shows the blocked hosts. On such a machine the hosts have to be allowed by policy (`sbx policy allow network ...`); I did not change any policy while testing. Whether the kit's own rules are honored on an unmanaged install is untested.
+The kit declares `network-policy@1` (Docker Hub for image pulls, Open VSX for extensions). Under a managed governance policy with default-deny, those rules were **not** applied and `docker pull` failed with `403 Forbidden` from `registry-1.docker.io` (`sbx policy log <name>` shows what was blocked). With governance out of the way, `sbx policy ls` shows them as a `kit`-sourced policy scoped to the sandbox ("managed by a kit; recreated at sandbox create"), and pulls work. If pulls fail on your machine, check `sbx policy log <name>` and `sbx policy ls <name>`.
 
 ## Open points
 

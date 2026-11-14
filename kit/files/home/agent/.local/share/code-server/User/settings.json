@@ -1,6 +1,8 @@
 {
   "workbench.startupEditor": "none",
   "workbench.tips.enabled": false,
+  "chat.disableAIFeatures": true,
+  "chat.commandCenter.enabled": false,
   "telemetry.telemetryLevel": "off",
   "security.workspace.trust.enabled": false,
   "remote.autoForwardPorts": false,
