@@ -1,0 +1,13 @@
+metadata:
+  id: local/hello-sbx-lab
+  contentVersion: 0.0.1
+
+title: Hello Labspace on Docker Sandboxes
+description: >
+  A minimal Labspace that runs inside a Docker Sandbox, on the sandbox's own Docker engine.
+
+sections:
+  - title: Welcome
+    contentPath: 01-welcome.md
+  - title: Docker inside the sandbox
+    contentPath: 02-docker.md

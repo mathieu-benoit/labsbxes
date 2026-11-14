@@ -1,0 +1,11 @@
+{
+  "workbench.startupEditor": "none",
+  "workbench.tips.enabled": false,
+  "telemetry.telemetryLevel": "off",
+  "security.workspace.trust.enabled": false,
+  "remote.autoForwardPorts": false,
+  "window.autoDetectColorScheme": true,
+  "terminal.integrated.scrollback": 10000,
+  "update.mode": "none",
+  "extensions.autoUpdate": false
+}

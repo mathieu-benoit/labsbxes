@@ -1,0 +1,123 @@
+# syntax=docker/sandbox-kit:3
+schemaVersion: "3"
+kind: mixin
+
+displayName: Labspace (split-screen lab on Docker Sandboxes)
+description: >-
+  Runs the Labspace interface (instructions on the left) and code-server
+  (VS Code on the right) inside a Docker Sandbox, on top of the sandbox's own
+  Docker engine. Point it at a content folder that has a labspace/ and a
+  project/ directory. Replaces the labspace-infra Compose stack.
+
+version: "0.1.0"
+
+# Layered onto the built-in `shell` agent (or any workload that carries a
+# Docker engine, bash and the `agent` user). Nothing is required by name: the
+# engine is asked for through dockerd@1 below.
+provides:
+  - "labspace@0.1.0"
+  - "code-server@${{ kit.args.codeServerVersion }}"
+
+args:
+  # BUILD phase: which code-server release goes into the overlay. Same pinning
+  # approach as the sbx-kits-contrib code-server kit.
+  codeServerVersion:
+    default: "4.140.0"
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+    description: code-server release to install
+    buildArg: CODE_SERVER_VERSION
+
+  # CREATE phase: exported to the container, read by the startup hooks.
+  devMode:
+    default: "false"
+    enum: ["true", "false"]
+    description: >-
+      Content authoring. When "true" the interface reads <workspace>/labspace
+      live (edit a markdown file on the host and reload the page) instead of a
+      copy taken at boot.
+    env: LABSPACE_DEV_MODE
+
+  # CREATE phase: expanded into the port@1 entry below.
+  appPort:
+    default: "3000"
+    pattern: '^[0-9]+$'
+    description: >-
+      Extra port to publish for an app the learner runs from the IDE or from a
+      container. Change it with --kit-arg appPort=8080.
+
+capabilities:
+  # The in-sandbox Docker engine. This is what replaces socket-proxy,
+  # workspace-cleaner and host-port-republisher: the learner talks to a private
+  # engine inside the microVM, never to the host's.
+  #
+  # Optional on purpose: sbx 0.53 does not know this type yet and would refuse
+  # the kit. The shell-docker template already starts its engine through the
+  # image's start-docker label, so the lab works either way; with the type
+  # granted, the engine store also persists across restarts.
+  - type: com.docker.sandbox/dockerd@1
+    optional: true
+    description: Private Docker engine for the lab (docker, compose, buildx, Testcontainers)
+
+  # The interface and the IDE. The runtime allocates the host port; pin them
+  # with `sbx run ... -p 3030:3030 -p 8085:8085` (the interface embeds the IDE
+  # at http://localhost:8085, so that one has to be pinned).
+  - type: com.docker.sandbox/port@1
+    config:
+      name: labspace-ui
+      container: 3030
+      transport: tcp
+
+  - type: com.docker.sandbox/port@1
+    config:
+      name: labspace-ide
+      container: 8085
+      transport: tcp
+
+  - type: com.docker.sandbox/port@1
+    config:
+      name: labspace-app
+      container: ${{ kit.args.appPort }}
+      transport: tcp
+
+  # The lab is used from a browser, so the sandbox must not stop when the last
+  # terminal session detaches.
+  - type: com.docker.sandbox/long-running@1
+
+  - type: com.docker.sandbox/network-policy@1
+    config:
+      runtime:
+        allow:
+          # Extensions from the IDE's marketplace.
+          - open-vsx.org
+          - openvsx.eclipsecontent.org
+          # Image pulls for `docker run` / `docker compose` inside the lab.
+          - auth.docker.io
+          - registry-1.docker.io
+          - production.cloudflare.docker.com
+          - production.cloudfront.docker.com
+          - docker-images-prod.6aa30f8b08e16409b46e0173d6de2f56.r2.cloudflarestorage.com
+
+  - type: com.docker.sandbox/lifecycle@1
+    config:
+      install:
+        # Once, at create: signing keypair, state directories. This is the
+        # part of the old `configurator` that still has a reason to exist.
+        - command: /opt/labspace/bin/labspace-init.sh
+          user: "0"
+          description: Create /etc/labspace-support (keypair, socket dir, metadata dir) and /labspace
+
+      startup:
+        # Every boot. Idempotent.
+        - command: /opt/labspace/bin/labspace-stage.sh
+          env: [WORKSPACE_DIR, SANDBOX_NAME, LABSPACE_DEV_MODE]
+          description: Stage <workspace>/labspace as the instructions and write metadata
+
+        - command: /opt/labspace/bin/labspace-ide.sh
+          env: [WORKSPACE_DIR]
+          background: true
+          description: Start code-server on :8085 opened on <workspace>/project
+
+        - command: /opt/labspace/bin/labspace-ui.sh
+          env: [LABSPACE_DEV_MODE]
+          background: true
+          description: Start the Labspace interface on :3030
