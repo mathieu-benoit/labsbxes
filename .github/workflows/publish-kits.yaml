@@ -9,9 +9,10 @@ name: publish-kits
 # What gets pushed, by event:
 #
 #   pull request          nothing: both kits are built, to prove they still build
-#   push to main          :edge and :sha-<short>
 #   push of a v* tag      :<version from the kit's descriptor> and :latest
-#   manual run            on main only, same as a push to main
+#   manual run on main    :edge and :sha-<short> (elsewhere: build only)
+#
+# Commits to main do not publish anything on their own.
 #
 # A release (v* tag) never overwrites a version that already exists: a kit whose
 # descriptor `version:` was not bumped is skipped, so a published version always
@@ -24,18 +25,13 @@ on:
       - "examples/hello-lab/**"
       - ".github/workflows/publish-kits.yaml"
   push:
-    branches: [main]
     tags: ["v*"]
-    paths:
-      - "kit/**"
-      - "examples/hello-lab/**"
-      - ".github/workflows/publish-kits.yaml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Two pushes to main must not race to move :edge.
+# Two runs on the same ref must not race to move a tag.
 concurrency:
   group: publish-kits-${{ github.ref }}
   cancel-in-progress: false

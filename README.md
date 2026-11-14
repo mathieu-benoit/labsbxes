@@ -86,8 +86,10 @@ sbx run shell \
 | Event | What it does |
 |---|---|
 | Pull request | Builds both kits, pushes nothing. |
-| Push to `main` | Publishes `:edge` and `:sha-<short>`. |
 | Push of a `v*` tag | Publishes `:<version from the kit's descriptor>` and `:latest`. A version that already exists is skipped, so a published version is immutable. |
+| Manual run (**Actions → publish-kits → Run workflow**) on `main` | Publishes `:edge` and `:sha-<short>`. On any other branch it only builds. |
+
+Commits to `main` don't publish anything on their own.
 
 To release a kit, bump `version:` in its descriptor (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`), merge, then push a tag (`git tag v0.2.0 && git push origin v0.2.0`). The git tag only triggers the release; each kit's version comes from its own descriptor, so the two can move independently.
 
