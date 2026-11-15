@@ -78,7 +78,7 @@ Running a lab from a workspace folder is for authoring and demos. To hand a lab 
 sbx run shell --kit ./kit --kit ./examples/hello-lab -p 3030:3030 -p 8085:8085 -p 3000:3000
 ```
 
-[examples/hello-lab](examples/hello-lab) is both a content repo and a content kit: [hello-lab.yaml](examples/hello-lab/hello-lab.yaml) (a mixin that `requires` the Labspace kit and `provides` `labspace-content`) and [hello-lab.dockerfile](examples/hello-lab/hello-lab.dockerfile) (`FROM scratch`, copies `labspace/` and `project/` to `/opt/labspace/content`). To make your own lab a kit, add those two files to its repo, adjusting the name and version.
+[examples/hello-lab](examples/hello-lab) is both a content repo and a content kit: [hello-lab.yaml](examples/hello-lab/hello-lab.yaml) (a mixin that `requires` the Labspace kit and `provides` `labspace-content`) and [hello-lab.dockerfile](examples/hello-lab/hello-lab.dockerfile) (`FROM scratch`, copies `labspace/` and `project/` to `/opt/labspace/content`). To make your own lab a kit, add those two files to its repo, adjusting the name and version. If the lab runs an app the learner opens, declare its port in the content kit with `port@1`, as hello-lab does for 3000: the lab then publishes what it needs whatever `appPort` is set to, and two kits declaring the same port are a single publication.
 
 When the content comes from a kit, the instructions are read from the kit, and `project/` is copied once to `~/project` in the sandbox, which is what the IDE opens. The learner's edits stay in the sandbox and survive `sbx stop`/`sbx run`; they are not written to the host. If the workspace itself contains a `labspace/labspace.yaml`, that wins over the kit, which is what makes authoring against a published kit possible.
 
@@ -216,6 +216,7 @@ Tested with sbx 0.53 on Windows, using `examples/hello-lab`:
 | `port@1` publishing (`appPort` 3000 → ephemeral host port; 3030/8085 pinned with `-p`) | Pass |
 | Fresh sandbox with **no `-p`**: 3030, 8085 and 3000 are published at create on ephemeral `127.0.0.1` ports (60023, 60024, 60025), the interface answers on its port, and `sbx stop` then `sbx run --name` gives new ones (60026, 60027, 60028) | Pass |
 | The `name` labels set on the `port@1` entries in `sbx ports` | Not shown by sbx 0.53 |
+| Content kit declaring its own `port@1` (hello-lab, 3000): `sbx kit inspect` reports `Published: 1 ports`; with `--kit-arg appPort=8080` both 8080 and 3000 are published, and nginx started on 3000 answers on its ephemeral host port; with the default `appPort` the two 3000 entries are one publication | Pass |
 | `docker pull` / `docker run -p 3000:80 nginx:alpine` inside the sandbox, reached from the host through the `appPort` binding | Pass |
 | IDE embedded in the interface at `localhost:8085` (split view), with Run, Save and the open-file link clicked in the real UI | Pass |
 | `devMode=true`: a markdown edit on the host shows up in the interface without a restart | Pass |
