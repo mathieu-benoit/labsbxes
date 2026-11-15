@@ -80,8 +80,11 @@ sbx cp @@SANDBOX@@:/home/agent/project/my-lab ./my-lab
 Edit it, then start a new sandbox from an empty folder, composing the Labspace kit with your content kit:
 
 ```bash no-run-button
-sbx run shell --kit ./kit --kit ./my-lab -p 3030:3030 -p 8085:8085 --name my-lab
+sbx run shell --kit ./kit --kit ./my-lab -p 8085:8085 --name my-lab
+sbx ports my-lab
 ```
+
+Open the host port listed for sandbox port 3030.
 
 ## What to know
 

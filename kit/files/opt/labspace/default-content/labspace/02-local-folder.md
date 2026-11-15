@@ -14,17 +14,18 @@ my-lab/
 Run it from a checkout of the kit, or replace `./kit` with the published reference:
 
 ```bash no-run-button
-sbx run shell --kit ./kit -p 3030:3030 -p 8085:8085 --name my-lab ./my-lab
+sbx run shell --kit ./kit -p 8085:8085 --name my-lab ./my-lab
+sbx ports my-lab
 ```
 
-Then open http://localhost:3030. The interface shows `labspace/`, and the IDE opens `project/`. The two published ports matter: the interface embeds the IDE at `localhost:8085`.
+Then open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. The interface shows `labspace/`, and the IDE opens `project/`. The kit publishes its ports on host ports that `sbx` picks; `-p 8085:8085` pins the one that matters, because the interface embeds the IDE at `localhost:8085`. Add `-p 3030:3030` to always open the interface at `http://localhost:3030`.
 
 ## While you write the lab
 
 Add `--kit-arg devMode=true` and the interface reads `labspace/` live, so saving a Markdown file on your host and reloading the page is enough:
 
 ```bash no-run-button
-sbx run shell --kit ./kit --kit-arg devMode=true -p 3030:3030 -p 8085:8085 --name my-lab ./my-lab
+sbx run shell --kit ./kit --kit-arg devMode=true -p 8085:8085 --name my-lab ./my-lab
 ```
 
 ## What to know
