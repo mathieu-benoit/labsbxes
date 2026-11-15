@@ -16,6 +16,53 @@ Then open http://localhost:3030.
 - The command attaches you to a bash session in the sandbox. Add `-d` to start it detached; the kit declares `long-running@1`, so the lab keeps running either way.
 - Re-attach with `sbx run --name my-lab`, stop with `sbx stop my-lab`, throw everything away with `sbx rm my-lab`.
 
+### Ports: published by the kit, or pinned by you
+
+The kit declares the ports the sandbox serves with the [`port@1`](https://github.com/docker/sandbox-kit-spec/blob/main/docs/spec/capabilities/com.docker.sandbox/port%401.md) capability (3030, 8085 and `appPort`), so they are published as soon as the sandbox is created, with no `sbx ports` command. A kit only names the **sandbox** port. The **host** port is chosen by `sbx`: a free one on `127.0.0.1`, chosen again at every start. The spec forbids a kit from pinning it, so that two shared kits can't ask for the same one. When the host port matters, you pin it yourself with `-p` (or `sbx ports --publish`).
+
+```mermaid
+graph LR
+    You(["Learner, in a browser"])
+
+    subgraph Host["Host machine"]
+        direction TB
+        Pinned["localhost:3030, :8085, :3000<br/>you choose them with -p"]
+        Ephemeral["127.0.0.1:random ports<br/>sbx chooses them"]
+    end
+
+    subgraph Sandbox["Docker Sandbox"]
+        direction TB
+        Services["interface :3030<br/>code-server :8085<br/>learner app :appPort"]
+    end
+
+    Kit["Labspace kit: 3 x port@1"]
+
+    You -->|opens| Pinned
+    You -.->|opens, IDE panel stays blank| Ephemeral
+    Kit -->|"published at sbx create"| Ephemeral
+    Pinned -->|"sbx run -p"| Services
+    Ephemeral -->|forwards to| Services
+
+    %% Styles — containers
+    style Host fill:#E5F2FC,stroke:#1D63ED,color:#00084D
+    style Sandbox fill:#f0faf4,stroke:#86c5a0,color:#00084D
+
+    %% Styles — host nodes
+    style Pinned fill:#E5F2FC,stroke:#1D63ED,color:#00084D
+    style Ephemeral fill:#E5F2FC,stroke:#1D63ED,color:#00084D
+
+    %% Styles — kit
+    style Kit fill:#fff,stroke:#0DB7ED,color:#384D54
+
+    %% Styles — sandbox nodes
+    style Services fill:#e0f2e6,stroke:#6db88a,color:#384D54
+
+    %% Styles — actor
+    style You fill:#fff,stroke:#1D63ED,color:#00084D
+```
+
+Without `-p`, `sbx ports my-lab` lists what `sbx` picked (for example `127.0.0.1:60023 -> 3030`). The interface loads there, but its IDE panel stays blank because the interface hard-codes `http://localhost:8085`. That is why the commands above pin 3030 and 8085.
+
 ### Without any content
 
 Launching the kit with no lab (an empty folder, no content kit) does not fail. It shows a **built-in getting-started lab**: what happened, the folder it looked in, and the three ways to give the sandbox a lab (a local folder, a content kit, a set), with a "Save" scaffold that writes a starter lab (`labspace/`, `project/`, and the two content-kit files) into the IDE. Copy it out with `sbx cp <sandbox>:/home/agent/project/my-lab ./my-lab`, then run it with `--kit ./kit --kit ./my-lab`. The content is in [kit/files/opt/labspace/default-content](kit/files/opt/labspace/default-content).
@@ -167,6 +214,8 @@ Tested with sbx 0.53 on Windows, using `examples/hello-lab`:
 | Run button path: `POST .../command` → JWT → unix socket → command typed in the IDE terminal | Pass |
 | Private Docker engine inside the sandbox (`docker info`) | Pass |
 | `port@1` publishing (`appPort` 3000 → ephemeral host port; 3030/8085 pinned with `-p`) | Pass |
+| Fresh sandbox with **no `-p`**: 3030, 8085 and 3000 are published at create on ephemeral `127.0.0.1` ports (60023, 60024, 60025), the interface answers on its port, and `sbx stop` then `sbx run --name` gives new ones (60026, 60027, 60028) | Pass |
+| The `name` labels set on the `port@1` entries in `sbx ports` | Not shown by sbx 0.53 |
 | `docker pull` / `docker run -p 3000:80 nginx:alpine` inside the sandbox, reached from the host through the `appPort` binding | Pass |
 | IDE embedded in the interface at `localhost:8085` (split view), with Run, Save and the open-file link clicked in the real UI | Pass |
 | `devMode=true`: a markdown edit on the host shows up in the interface without a restart | Pass |
