@@ -25,3 +25,13 @@ requires: ["labspace >= 0.1.0"]
 # One lab per sandbox: a second content kit provides the same name, and the
 # runtime refuses the composition.
 provides: ["labspace-content@0.1.2"]
+
+capabilities:
+  # The lab's "Docker inside the sandbox" page runs nginx on port 3000 and
+  # opens it in a tab. The lab declares that port itself rather than relying on
+  # the Labspace kit's appPort default: it is still published if appPort is
+  # changed, and the two entries are one publication when they match.
+  # sbx picks the host port (sbx ports <name>); -p 3000:3000 pins it for the tab.
+  - type: com.docker.sandbox/port@1
+    config:
+      container: 3000

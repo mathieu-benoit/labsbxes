@@ -21,4 +21,4 @@ docker run -d --rm --name web -p 3000:80 nginx:alpine
 Then open :tabLink[the app]{href="http://localhost:3000" title="App" id="app"}. It opens as a new tab next to the IDE.
 
 > [!NOTE]
-> The tab loads `localhost:3000` on your machine, so the sandbox has to publish its port 3000 on your port 3000: start it with `-p 3000:3000`. Without that flag, the kit still publishes port 3000, but on a random host port, which `sbx ports <sandbox name>` shows.
+> The tab loads `localhost:3000` on your machine, so the sandbox has to publish its port 3000 on your port 3000: start it with `-p 3000:3000`. Without that flag, port 3000 is still published, because the kits declare it (`port@1`), but on a random host port, which `sbx ports <sandbox name>` shows.

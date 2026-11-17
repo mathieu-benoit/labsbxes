@@ -52,6 +52,14 @@ requires: ["labspace >= 0.1.0"]
 
 # One lab per sandbox: a second content kit would provide the same name.
 provides: ["labspace-content@1.0.0"]
+
+# If the lab runs an app the learner opens in a browser, declare its port:
+# it is published as soon as the sandbox is created, on a host port that sbx
+# picks (sbx ports <name>).
+# capabilities:
+#   - type: com.docker.sandbox/port@1
+#     config:
+#       container: 3000
 ```
 
 ```dockerfile save-as=my-lab/my-lab.dockerfile
@@ -72,11 +80,15 @@ sbx cp @@SANDBOX@@:/home/agent/project/my-lab ./my-lab
 Edit it, then start a new sandbox from an empty folder, composing the Labspace kit with your content kit:
 
 ```bash no-run-button
-sbx run shell --kit ./kit --kit ./my-lab -p 3030:3030 -p 8085:8085 --name my-lab
+sbx run shell --kit ./kit --kit ./my-lab -p 8085:8085 --name my-lab
+sbx ports my-lab
 ```
+
+Open the host port listed for sandbox port 3030.
 
 ## What to know
 
 - With a content kit, `project/` is copied once into the sandbox. The learner's edits stay in the sandbox and survive `sbx stop` and `sbx run`, but not `sbx rm`.
 - A kit that is not composed with the Labspace kit fails with `requires "labspace >= 0.1.0"`, and two content kits conflict.
 - If the workspace folder itself contains a `labspace/labspace.yaml`, it takes priority over the content kit.
+- A port declared with `port@1` gets a host port that `sbx` picks, and picks again at every start: a kit can't choose it. If the lab links to the app on a fixed `localhost` port, the learner still pins it with `-p`, for example `-p 3000:3000`.

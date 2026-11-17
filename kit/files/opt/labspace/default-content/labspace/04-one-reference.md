@@ -28,8 +28,11 @@ docker buildx build --builder kit-builder . -f my-lab-set.yaml -t docker.io/YOU/
 Learners then run:
 
 ```bash no-run-button
-sbx run shell --kit docker.io/YOU/my-lab-set:1.0.0 -p 3030:3030 -p 8085:8085
+sbx run shell --kit docker.io/YOU/my-lab-set:1.0.0 -p 8085:8085 --name my-lab
+sbx ports my-lab
 ```
+
+and open the host port listed for sandbox port 3030.
 
 ## What to know
 

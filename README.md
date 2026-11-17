@@ -5,16 +5,67 @@ Run a [Labspace](https://github.com/dockersamples/labspace-infra) (instructions 
 The infrastructure is a single [Sandbox Kit](https://github.com/docker/sandbox-kit-spec) (v3 mixin) that layers onto the built-in `shell` agent.
 
 ```bash
-sbx run shell --kit ./kit -p 3030:3030 -p 8085:8085 -p 3000:3000 --name my-lab ./examples/hello-lab
+sbx run shell --kit ./kit -p 8085:8085 -p 3000:3000 --name my-lab ./examples/hello-lab
+sbx ports my-lab
 ```
 
-Then open http://localhost:3030.
+Then open the interface: `http://127.0.0.1:<HOST PORT>/`, with the host port `sbx ports` lists for sandbox port 3030.
 
 - `./examples/hello-lab` is the **content repo**, mounted as the sandbox workspace. It has the same layout as any labspace-infra content repo: `labspace/` (`labspace.yaml` + markdown) and `project/` (what the IDE opens).
-- `-p 3030:3030 -p 8085:8085` pins the host ports. The interface embeds the IDE at `http://localhost:8085`, so that one must be pinned. Without `-p`, the kit's `port@1` entries get ephemeral ports (`sbx ports my-lab`) and the IDE panel will not load.
-- If those host ports are already taken (for example by a running Compose Labspace), use other ones such as `-p 3031:3030 -p 8086:8085`; the lab opens on the first, but the IDE panel inside it will only load on 8085.
+- The kit publishes its ports itself (see [Ports](#ports-published-by-the-kit-or-pinned-by-you)). `-p` only pins a host port where something expects a fixed `localhost` address:
+  - `-p 8085:8085` is required: the interface embeds the IDE at `http://localhost:8085`.
+  - `-p 3000:3000` is for hello-lab's tab link to `http://localhost:3000`. A lab with no such link doesn't need it.
+  - `-p 3030:3030` is optional: add it to always open the interface at http://localhost:3030.
+- If host port 8085 is already taken (for example by a running Compose Labspace), the IDE panel won't load: only one lab at a time can use it.
 - The command attaches you to a bash session in the sandbox. Add `-d` to start it detached; the kit declares `long-running@1`, so the lab keeps running either way.
 - Re-attach with `sbx run --name my-lab`, stop with `sbx stop my-lab`, throw everything away with `sbx rm my-lab`.
+
+### Ports: published by the kit, or pinned by you
+
+The kit declares the ports the sandbox serves with the [`port@1`](https://github.com/docker/sandbox-kit-spec/blob/main/docs/spec/capabilities/com.docker.sandbox/port%401.md) capability (3030, 8085 and `appPort`), so they are published as soon as the sandbox is created, with no `sbx ports` command. A kit only names the **sandbox** port. The **host** port is chosen by `sbx`: a free one on `127.0.0.1`, chosen again at every start. The spec forbids a kit from pinning it, so that two shared kits can't ask for the same one. When the host port matters, you pin it yourself with `-p` (or `sbx ports --publish`).
+
+```mermaid
+graph LR
+    You(["Learner, in a browser"])
+
+    subgraph Host["Host machine"]
+        direction TB
+        Pinned["localhost:8085, :3000<br/>you pin them with -p"]
+        Ephemeral["127.0.0.1:random ports<br/>sbx chooses them"]
+    end
+
+    subgraph Sandbox["Docker Sandbox"]
+        direction TB
+        Services["interface :3030<br/>code-server :8085<br/>learner app :appPort"]
+    end
+
+    Kit["Labspace kit: 3 x port@1"]
+
+    You -->|opens the interface| Ephemeral
+    You -->|"IDE panel, tab links"| Pinned
+    Kit -->|"published at sbx create"| Ephemeral
+    Pinned -->|"sbx run -p"| Services
+    Ephemeral -->|forwards to| Services
+
+    %% Styles — containers
+    style Host fill:#E5F2FC,stroke:#1D63ED,color:#00084D
+    style Sandbox fill:#f0faf4,stroke:#86c5a0,color:#00084D
+
+    %% Styles — host nodes
+    style Pinned fill:#E5F2FC,stroke:#1D63ED,color:#00084D
+    style Ephemeral fill:#E5F2FC,stroke:#1D63ED,color:#00084D
+
+    %% Styles — kit
+    style Kit fill:#fff,stroke:#0DB7ED,color:#384D54
+
+    %% Styles — sandbox nodes
+    style Services fill:#e0f2e6,stroke:#6db88a,color:#384D54
+
+    %% Styles — actor
+    style You fill:#fff,stroke:#1D63ED,color:#00084D
+```
+
+`sbx ports my-lab` lists what `sbx` picked (for example `127.0.0.1:60036 -> 3030`). The interface works from there, but its IDE panel loads `http://localhost:8085`, a fixed address, which is why every command here pins 8085. Without it the panel stays blank.
 
 ### Without any content
 
@@ -28,10 +79,10 @@ Running a lab from a workspace folder is for authoring and demos. To hand a lab 
 
 ```bash
 # from any folder; the lab content comes from the kit, not from the workspace
-sbx run shell --kit ./kit --kit ./examples/hello-lab -p 3030:3030 -p 8085:8085 -p 3000:3000
+sbx run shell --kit ./kit --kit ./examples/hello-lab -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
-[examples/hello-lab](examples/hello-lab) is both a content repo and a content kit: [hello-lab.yaml](examples/hello-lab/hello-lab.yaml) (a mixin that `requires` the Labspace kit and `provides` `labspace-content`) and [hello-lab.dockerfile](examples/hello-lab/hello-lab.dockerfile) (`FROM scratch`, copies `labspace/` and `project/` to `/opt/labspace/content`). To make your own lab a kit, add those two files to its repo, adjusting the name and version.
+[examples/hello-lab](examples/hello-lab) is both a content repo and a content kit: [hello-lab.yaml](examples/hello-lab/hello-lab.yaml) (a mixin that `requires` the Labspace kit and `provides` `labspace-content`) and [hello-lab.dockerfile](examples/hello-lab/hello-lab.dockerfile) (`FROM scratch`, copies `labspace/` and `project/` to `/opt/labspace/content`). To make your own lab a kit, add those two files to its repo, adjusting the name and version. If the lab runs an app the learner opens, declare its port in the content kit with `port@1`, as hello-lab does for 3000: the lab then publishes what it needs whatever `appPort` is set to, and two kits declaring the same port are a single publication.
 
 When the content comes from a kit, the instructions are read from the kit, and `project/` is copied once to `~/project` in the sandbox, which is what the IDE opens. The learner's edits stay in the sandbox and survive `sbx stop`/`sbx run`; they are not written to the host. If the workspace itself contains a `labspace/labspace.yaml`, that wins over the kit, which is what makes authoring against a published kit possible.
 
@@ -59,7 +110,7 @@ docker buildx build --builder kit-builder examples/hello-lab -f examples/hello-l
 docker buildx build --builder kit-builder . -f hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.2 --push
 
 # learners:
-sbx run shell --kit docker.io/<you>/hello-lab-set:0.1.2 -p 3030:3030 -p 8085:8085 -p 3000:3000
+sbx run shell --kit docker.io/<you>/hello-lab-set:0.1.2 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 `kit-builder` is a `docker-container` builder (`docker buildx create --name kit-builder --driver docker-container --bootstrap`), as in the [spec README](https://github.com/docker/sandbox-kit-spec#building-a-kit).
@@ -80,8 +131,10 @@ The published set is one ordinary mixin that pins both members by digest and car
 sbx run shell \
   --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.2 \
   --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.2 \
-  -p 3030:3030 -p 8085:8085 -p 3000:3000
+  -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
+
+Then open the host port `sbx ports hello-lab` lists for sandbox port 3030.
 
 | Event | What it does |
 |---|---|
@@ -167,6 +220,10 @@ Tested with sbx 0.53 on Windows, using `examples/hello-lab`:
 | Run button path: `POST .../command` → JWT → unix socket → command typed in the IDE terminal | Pass |
 | Private Docker engine inside the sandbox (`docker info`) | Pass |
 | `port@1` publishing (`appPort` 3000 → ephemeral host port; 3030/8085 pinned with `-p`) | Pass |
+| Fresh sandbox with **no `-p`**: 3030, 8085 and 3000 are published at create on ephemeral `127.0.0.1` ports (60023, 60024, 60025), the interface answers on its port, and `sbx stop` then `sbx run --name` gives new ones (60026, 60027, 60028) | Pass |
+| The `name` labels set on the `port@1` entries in `sbx ports` | Not shown by sbx 0.53 |
+| Only `-p 8085:8085` pinned: the interface opened on its ephemeral port (`127.0.0.1:60036`), the IDE panel loaded from `localhost:8085`, and Run typed the command into the IDE terminal | Pass |
+| Content kit declaring its own `port@1` (hello-lab, 3000): `sbx kit inspect` reports `Published: 1 ports`; with `--kit-arg appPort=8080` both 8080 and 3000 are published, and nginx started on 3000 answers on its ephemeral host port; with the default `appPort` the two 3000 entries are one publication | Pass |
 | `docker pull` / `docker run -p 3000:80 nginx:alpine` inside the sandbox, reached from the host through the `appPort` binding | Pass |
 | IDE embedded in the interface at `localhost:8085` (split view), with Run, Save and the open-file link clicked in the real UI | Pass |
 | `devMode=true`: a markdown edit on the host shows up in the interface without a restart | Pass |
@@ -191,7 +248,7 @@ The kit declares `network-policy@1` (Docker Hub for image pulls, Open VSX for ex
 
 ## Open points
 
-- **One port for everything.** Today the learner must pin `-p 3030:3030 -p 8085:8085` because the interface hard-codes `http://localhost:8085` for the IDE. A gateway (or an `IDE_URL` setting in the interface) serving the IDE under the interface's own port would reduce this to one published port, and could let the kit work with ephemeral ports.
+- **One port for everything.** Today the learner must pin `-p 8085:8085` because the interface hard-codes `http://localhost:8085` for the IDE. A gateway (or an `IDE_URL` setting in the interface) serving the IDE under the interface's own port would reduce this to one published port, and could let the kit work with ephemeral ports.
 - **Instructions are no longer protected from the learner.** In labspace-infra the interface mounted them read-only. In a sandbox the agent user owns the VM anyway, so this was dropped.
 - **A set is a pinned artifact.** Bumping the Labspace kit means republishing every lab set that includes it. Keeping the content kit separate (and composing with `--kit`) avoids that, at the cost of two references.
 - **Kit content is not on the host.** With a content kit, the learner's project lives in the sandbox (`~/project`), so it is gone after `sbx rm`. Mount a host folder if it must be kept.
