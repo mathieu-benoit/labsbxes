@@ -1,0 +1,7 @@
+# Keep the build context to the lab's content.
+*
+!labspace
+!project
+!LICENSE
+!building-images.yaml
+!building-images.dockerfile

@@ -1,0 +1,37 @@
+metadata:
+  id: dockersamples/building-container-images
+  sourceRepo: github.com/dockersamples/labspace-building-images
+  contentVersion: 1.0.0
+
+title: "Building Container Images: Best Practices"
+description: Transform a basic Dockerfile into a production-grade container image by mastering layer caching, multi-stage builds, non-root users, and secure secret handling.
+
+sections:
+  - title: "Welcome & Your First Build"
+    contentPath: 01-welcome.md
+  - title: "Understanding Image Layers"
+    contentPath: 02-image-layers.md
+  - title: "Dockerfile Best Practices"
+    contentPath: 03-best-practices.md
+  - title: "Multi-Stage Builds"
+    contentPath: 04-multistage-builds.md
+  - title: "Choosing a Base Image"
+    contentPath: 05-base-images.md
+  - title: "Build Secrets"
+    contentPath: 06-build-secrets.md
+  - title: "Wrap-up"
+    contentPath: 07-wrap-up.md
+
+services:
+  - id: quote-app
+    title: Quote App
+    url: http://localhost:5050
+    icon: format_quote
+
+variables:
+  # This variable should reflect a version number (3.14). Note that this variable is used in direct
+  # image tags (python:3.14), but also in segments where a -slim suffix is added (python:3.14-slim).
+  # Additionally, it is current used for DHI image tags (dhi/python:3.14 and dhi/python:3.14-dev).
+  #
+  # Important note: When updating this, also update project/Dockerfile to match the same version.
+  pythonImageTag: 3.14
