@@ -98,19 +98,19 @@ A `kind: set` merges the two into one published kit. Publish both kits to a regi
 schemaVersion: "3"
 kind: set
 displayName: Hello Labspace (ready to run)
-version: "0.1.3"
+version: "0.1.4"
 kits:
-  - ref: docker.io/<you>/labspace:0.1.3
-  - ref: docker.io/<you>/hello-lab:0.1.3
+  - ref: docker.io/<you>/labspace:0.1.4
+  - ref: docker.io/<you>/hello-lab:0.1.4
 ```
 
 ```bash
-docker buildx build --builder kit-builder kit -f kit/labspace.yaml -t docker.io/<you>/labspace:0.1.3 --push
-docker buildx build --builder kit-builder examples/hello-lab -f examples/hello-lab/hello-lab.yaml -t docker.io/<you>/hello-lab:0.1.3 --push
-docker buildx build --builder kit-builder . -f hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.3 --push
+docker buildx build --builder kit-builder kit -f kit/labspace.yaml -t docker.io/<you>/labspace:0.1.4 --push
+docker buildx build --builder kit-builder examples/hello-lab -f examples/hello-lab/hello-lab.yaml -t docker.io/<you>/hello-lab:0.1.4 --push
+docker buildx build --builder kit-builder . -f hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.4 --push
 
 # learners:
-sbx run shell --kit docker.io/<you>/hello-lab-set:0.1.3 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run shell --kit docker.io/<you>/hello-lab-set:0.1.4 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 `kit-builder` is a `docker-container` builder (`docker buildx create --name kit-builder --driver docker-container --bootstrap`), as in the [spec README](https://github.com/docker/sandbox-kit-spec#building-a-kit).
@@ -130,8 +130,8 @@ The published set is one ordinary mixin that pins both members by digest and car
 ```bash
 # from an empty folder
 sbx run shell \
-  --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.3 \
-  --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.3 \
+  --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.4 \
+  --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.4 \
   -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
