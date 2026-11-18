@@ -25,9 +25,10 @@ docker buildx build --builder kit-builder ./my-lab -f ./my-lab/my-lab.yaml -t do
 docker buildx build --builder kit-builder . -f my-lab-set.yaml -t docker.io/YOU/my-lab-set:1.0.0 --push
 ```
 
-Learners then run:
+Learners then run, from a dedicated, empty folder (`sbx` refuses to mount the home directory):
 
 ```bash no-run-button
+mkdir -p ~/sbx-lab && cd ~/sbx-lab
 sbx run shell --kit docker.io/YOU/my-lab-set:1.0.0 -p 8085:8085 --name my-lab
 sbx ports my-lab
 ```
