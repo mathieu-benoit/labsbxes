@@ -40,7 +40,7 @@
   // --- Catalog -------------------------------------------------------------
 
   function renderCatalog() {
-    document.title = "Labspace kits";
+    document.title = "Labspace on Docker Sandboxes";
     var v = state.config.version;
     var header = el("header", { "class": "catalog-header" }, [
       el("div", { "class": "catalog-brand" }, [
@@ -156,7 +156,7 @@
   }
 
   function renderKit(kit) {
-    document.title = kit.title + " · Labspace kits";
+    document.title = kit.title + " · Labspace on Docker Sandboxes";
     var back = el("a", { "class": "kit-back", href: "#/" }, [icon("arrow_back"), document.createTextNode("All kits")]);
 
     var pullRef = kit.package + (state.config.version ? ":" + state.config.version : "");
@@ -214,7 +214,7 @@
   // --- Static page (an entry with "page" instead of "dir") -----------------
 
   function renderPage(entry) {
-    document.title = entry.title + " · Labspace kits";
+    document.title = entry.title + " · Labspace on Docker Sandboxes";
     var back = el("a", { "class": "kit-back", href: "#/" }, [icon("arrow_back"), document.createTextNode("All kits")]);
     var meta = el("div", { "class": "catalog-card-meta" });
     entry.chips.forEach(function (c) { meta.appendChild(chip(c)); });
