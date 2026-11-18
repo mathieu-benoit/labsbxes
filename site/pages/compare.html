@@ -1,0 +1,117 @@
+<!-- Loaded into the landing page at #/compare (see app.js). A fragment, not a full page. -->
+<section class="cmp-stats" aria-label="In numbers">
+  <div class="cmp-stat">
+    <span class="cmp-stat-before">6 containers</span>
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+    <span class="cmp-stat-after">2 processes</span>
+    <span class="cmp-stat-label">interface and code-server, in one sandbox</span>
+  </div>
+  <div class="cmp-stat">
+    <span class="cmp-stat-before">5 volumes, 1 network</span>
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+    <span class="cmp-stat-after">none</span>
+    <span class="cmp-stat-label">the content is a folder or a kit</span>
+  </div>
+  <div class="cmp-stat">
+    <span class="cmp-stat-before">Host Docker engine</span>
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+    <span class="cmp-stat-after">Private engine</span>
+    <span class="cmp-stat-label">inside a microVM, nothing to proxy</span>
+  </div>
+  <div class="cmp-stat">
+    <span class="cmp-stat-before">Open egress</span>
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+    <span class="cmp-stat-after">Allow-list</span>
+    <span class="cmp-stat-label">from the kit's network policy</span>
+  </div>
+</section>
+
+<section class="cmp-columns" aria-label="Before and after">
+  <div class="cmp-col">
+    <span class="cmp-col-eyebrow">Before · labspace-infra</span>
+    <h2><code>docker compose up</code></h2>
+    <p>Six containers share your host's Docker engine. The learner's <code>docker</code> reaches that engine through <code>socket-proxy</code>, which labels, filters and remaps every call so the lab only sees, mounts and later deletes its own resources.</p>
+    <ul>
+      <li>A <code>configurator</code> clones the content repo into volumes</li>
+      <li><code>host-port-republisher</code> bridges the learner's ports to <code>localhost</code></li>
+      <li><code>workspace-cleaner</code> removes labeled resources on <code>down</code></li>
+    </ul>
+  </div>
+  <div class="cmp-col cmp-col-after">
+    <span class="cmp-col-eyebrow">After · this repo</span>
+    <h2><code>sbx run</code></h2>
+    <p>One Docker Sandbox per lab: a microVM with its own kernel and its own Docker engine. The lab is composed from kits: the <code>shell</code> workload, the Labspace kit, and optionally a content kit.</p>
+    <ul>
+      <li>The lab is a folder, a content kit, or the built-in getting-started lab</li>
+      <li>The runtime publishes the ports the kits declare (<code>port@1</code>)</li>
+      <li><code>sbx rm</code> deletes the VM and everything the lab created</li>
+    </ul>
+  </div>
+</section>
+
+<h2>At a glance</h2>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th></th><th><code>docker compose up</code></th><th><code>sbx run</code></th></tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row">Isolation boundary</th><td>Containers on your host's engine; <code>socket-proxy</code> filters the Docker API</td><td>A microVM with its own kernel and Docker engine</td></tr>
+      <tr><th scope="row">Learner's <code>docker</code></th><td>Host engine, through the proxied socket</td><td>Private engine inside the VM (<code>dockerd@1</code>)</td></tr>
+      <tr><th scope="row">Where the lab comes from</th><td><code>configurator</code> clones a git repo into volumes</td><td>A lab folder, a content kit, or the built-in lab, picked at each boot</td></tr>
+      <tr><th scope="row">Ports</th><td>3030 and 8085, plus <code>host-port-republisher</code> for learner apps</td><td>3030, 8085 and the lab's app port, published by the runtime (<code>port@1</code>)</td></tr>
+      <tr><th scope="row">Network egress</th><td>Unrestricted</td><td>Allow-list from the kits' network policy</td></tr>
+      <tr><th scope="row">Cleanup</th><td><code>workspace-cleaner</code> on <code>docker compose down</code></td><td><code>sbx rm</code> deletes the VM and its engine store</td></tr>
+      <tr><th scope="row">Moving parts</th><td>6 containers, 5 volumes, 1 network, 5 configs</td><td>The <code>shell</code> workload + the Labspace kit, plus an optional content kit</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>What happened to each component</h2>
+<ul class="cmp-fates">
+  <li>
+    <span class="cmp-fate cmp-fate-removed"><span class="material-symbols-outlined" aria-hidden="true">delete</span>Removed</span>
+    <div><strong><code>socket-proxy</code></strong> The learner's <code>docker</code> never reaches the host engine, so there is nothing to filter, label, allow-list or remap. Bind mounts of the project folder just work, since the engine and the files share a filesystem.</div>
+  </li>
+  <li>
+    <span class="cmp-fate cmp-fate-removed"><span class="material-symbols-outlined" aria-hidden="true">delete</span>Removed</span>
+    <div><strong><code>workspace-cleaner</code></strong> The engine store lives in the sandbox: <code>sbx rm</code> deletes every container, volume, network and image the lab created.</div>
+  </li>
+  <li>
+    <span class="cmp-fate cmp-fate-removed"><span class="material-symbols-outlined" aria-hidden="true">delete</span>Removed</span>
+    <div><strong><code>host-port-republisher</code></strong> The runtime publishes the ports the kits declare (<code>port@1</code>, <code>sbx ports</code>).</div>
+  </li>
+  <li>
+    <span class="cmp-fate cmp-fate-removed"><span class="material-symbols-outlined" aria-hidden="true">delete</span>Removed</span>
+    <div><strong><code>marlin-mock</code> (development stack only)</strong> Analytics are off.</div>
+  </li>
+  <li>
+    <span class="cmp-fate cmp-fate-replaced"><span class="material-symbols-outlined" aria-hidden="true">swap_horiz</span>Replaced</span>
+    <div><strong><code>configurator</code></strong> Two small boot scripts: <code>labspace-init.sh</code> once (keypair, directories) and <code>labspace-stage.sh</code> at every boot (stage the instructions, write metadata). No git clone, no tarball, no volumes.</div>
+  </li>
+  <li>
+    <span class="cmp-fate cmp-fate-kept"><span class="material-symbols-outlined" aria-hidden="true">check</span>Kept</span>
+    <div><strong><code>interface</code></strong> Reused unchanged from the <code>dockersamples/labspace-interface</code> image, with the <code>node</code> binary it needs.</div>
+  </li>
+  <li>
+    <span class="cmp-fate cmp-fate-kept"><span class="material-symbols-outlined" aria-hidden="true">check</span>Kept</span>
+    <div><strong><code>workspace</code> (code-server)</strong> Built into the Labspace kit: a pinned install at build time, nothing downloaded at create.</div>
+  </li>
+  <li>
+    <span class="cmp-fate cmp-fate-kept"><span class="material-symbols-outlined" aria-hidden="true">check</span>Kept</span>
+    <div><strong><code>support-vscode-extension</code></strong> Reused unchanged. The JWT and unix socket between the interface and the IDE still work, now between two processes in one sandbox.</div>
+  </li>
+</ul>
+
+<h2>What stays the same for lab authors</h2>
+<p>A lab keeps the labspace-infra layout, <code>labspace/</code> (<code>labspace.yaml</code> and the markdown) and <code>project/</code> (what the IDE opens), so existing content runs as is. To hand a lab to someone, add two small files and it becomes a content kit, like the <a href="#/kits/building-images-lab">Building Container Images</a> lab, which is <a href="https://github.com/dockersamples/labspace-building-images" target="_blank" rel="noopener">dockersamples/labspace-building-images</a> unchanged.</p>
+
+<h2>Trade-offs to know</h2>
+<ul class="cmp-tradeoffs">
+  <li><strong>Pin the IDE port.</strong> The interface embeds the IDE at <code>http://localhost:8085</code>, so every run pins <code>-p 8085:8085</code>, and only one lab at a time can use it.</li>
+  <li><strong>The project lives in the sandbox.</strong> With a content kit, the learner's edits survive <code>sbx stop</code> but not <code>sbx rm</code>.</li>
+  <li><strong>Start from an empty folder.</strong> The folder <code>sbx run</code> starts in is mounted into the sandbox, so never start from your home directory.</li>
+  <li><strong>Instructions are not read-only.</strong> labspace-infra mounted them read-only; in a sandbox the learner owns the VM anyway.</li>
+</ul>
+
+<p class="cmp-more">Diagrams of both setups are in <a data-repo-path="docs/architecture.md" href="https://github.com/mathieu-benoit/labsbxes/blob/main/docs/architecture.md" target="_blank" rel="noopener">docs/architecture.md</a>. The original stack is <a href="https://github.com/dockersamples/labspace-infra" target="_blank" rel="noopener">dockersamples/labspace-infra</a>.</p>

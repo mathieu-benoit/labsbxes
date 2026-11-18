@@ -6,7 +6,12 @@
     "title": "Labspace runtime",
     "description": "The Labspace interface, VS Code and a private Docker engine, inside a Docker Sandbox. Run it alone for the getting-started lab, or with a content kit.",
     "package": "ghcr.io/mathieu-benoit/labsbxes/labspace",
-    "chips": ["runtime", "code-server", "docker engine", "kit args"]
+    "chips": [
+      "runtime",
+      "code-server",
+      "docker engine",
+      "kit args"
+    ]
   },
   {
     "id": "hello-lab",
@@ -15,7 +20,11 @@
     "title": "Hello Labspace",
     "description": "A minimal lab: Run buttons that type into the IDE terminal, and an nginx container on the sandbox's own Docker engine, opened in a tab.",
     "package": "ghcr.io/mathieu-benoit/labsbxes/hello-lab",
-    "chips": ["content kit", "starter", "port 3000"]
+    "chips": [
+      "content kit",
+      "starter",
+      "port 3000"
+    ]
   },
   {
     "id": "building-images-lab",
@@ -24,6 +33,24 @@
     "title": "Building Container Images: Best Practices",
     "description": "Turn a basic Dockerfile into a production-grade image: layer caching, multi-stage builds, non-root users, Docker Hardened Images and build secrets.",
     "package": "ghcr.io/mathieu-benoit/labsbxes/building-images-lab",
-    "chips": ["content kit", "dockerfile", "multi-stage", "dhi", "port 5050"]
+    "chips": [
+      "content kit",
+      "dockerfile",
+      "multi-stage",
+      "dhi",
+      "port 5050"
+    ]
+  },
+  {
+    "id": "compare",
+    "page": "pages/compare.html",
+    "icon": "compare_arrows",
+    "title": "What's different from labspace-infra",
+    "description": "From docker compose up to sbx run: what was removed, replaced and kept, and why a microVM with its own Docker engine needs far fewer moving parts.",
+    "chips": [
+      "overview",
+      "compose vs sbx",
+      "architecture"
+    ]
   }
 ]
