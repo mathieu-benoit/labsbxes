@@ -3,9 +3,9 @@ name: publish-kits
 # Builds the kits and publishes them to this repository's container registry
 # (GHCR), as ghcr.io/<owner>/<repo>/<kit>:
 #
-#   labspace         kit/                        the Labspace runtime (a mixin for the `shell` agent)
-#   hello-lab        examples/hello-lab/         a lab's content, as a kit
-#   building-images  examples/building-images/   a lab's content, as a kit
+#   labspace             kit/                            the Labspace runtime (a mixin for the `shell` agent)
+#   hello-lab            examples/hello-lab/             a lab's content, as a kit
+#   building-images-lab  examples/building-images-lab/   a lab's content, as a kit
 #
 # What gets pushed, by event:
 #
@@ -29,7 +29,7 @@ on:
     paths:
       - "kit/**"
       - "examples/hello-lab/**"
-      - "examples/building-images/**"
+      - "examples/building-images-lab/**"
       - ".github/workflows/publish-kits.yaml"
   push:
     tags: ["v*"]
@@ -72,13 +72,13 @@ jobs:
           }
           labspace="$(read_version kit/labspace.yaml)"
           hello_lab="$(read_version examples/hello-lab/hello-lab.yaml)"
-          building_images="$(read_version examples/building-images/building-images.yaml)"
+          building_images_lab="$(read_version examples/building-images-lab/building-images-lab.yaml)"
           echo "labspace:        ${labspace:-<none>}"
           echo "hello-lab:       ${hello_lab:-<none>}"
-          echo "building-images: ${building_images:-<none>}"
+          echo "building-images-lab: ${building_images_lab:-<none>}"
 
-          if [ -z "$labspace" ] || [ "$labspace" != "$hello_lab" ] || [ "$labspace" != "$building_images" ]; then
-            echo "::error::The kits must share one version: kit/labspace.yaml says '${labspace}', examples/hello-lab/hello-lab.yaml says '${hello_lab}', examples/building-images/building-images.yaml says '${building_images}'."
+          if [ -z "$labspace" ] || [ "$labspace" != "$hello_lab" ] || [ "$labspace" != "$building_images_lab" ]; then
+            echo "::error::The kits must share one version: kit/labspace.yaml says '${labspace}', examples/hello-lab/hello-lab.yaml says '${hello_lab}', examples/building-images-lab/building-images-lab.yaml says '${building_images_lab}'."
             exit 1
           fi
 
@@ -109,9 +109,9 @@ jobs:
           - name: hello-lab
             context: examples/hello-lab
             descriptor: examples/hello-lab/hello-lab.yaml
-          - name: building-images
-            context: examples/building-images
-            descriptor: examples/building-images/building-images.yaml
+          - name: building-images-lab
+            context: examples/building-images-lab
+            descriptor: examples/building-images-lab/building-images-lab.yaml
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
