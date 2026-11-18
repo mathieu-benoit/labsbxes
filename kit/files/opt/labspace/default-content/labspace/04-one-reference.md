@@ -25,7 +25,7 @@ docker buildx build --builder kit-builder ./my-lab -f ./my-lab/my-lab.yaml -t do
 docker buildx build --builder kit-builder . -f my-lab-set.yaml -t docker.io/YOU/my-lab-set:1.0.0 --push
 ```
 
-Learners then run, from a dedicated, empty folder (`sbx` refuses to mount the home directory):
+Learners then run it from a dedicated, empty folder. The folder they start from is mounted into the sandbox, so it should never be their home directory, with its keys and credentials:
 
 ```bash no-run-button
 mkdir -p ~/sbx-lab && cd ~/sbx-lab

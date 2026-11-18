@@ -127,7 +127,7 @@ The published set is one ordinary mixin that pins both members by digest and car
 | `hello-lab` content | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/](examples/hello-lab) |
 | `building-images` content | `ghcr.io/mathieu-benoit/labsbxes/building-images` | [examples/building-images/](examples/building-images) |
 
-Run them from a **dedicated, empty folder**, not from your home directory. `sbx run` mounts the current folder as the sandbox workspace, and it refuses your home directory because that folder also holds the Sandboxes configuration, state and credentials (``mount "/Users/<you>" overlaps Sandboxes configuration, state or credentials``). With a content kit the workspace isn't used, so an empty folder is all it needs:
+Run them from a **dedicated, empty folder**. `sbx run` mounts the current folder into the sandbox as its workspace, read-write. Started from your home directory, that would hand the sandbox your SSH keys, cloud and registry credentials, shell history and every other project, which defeats the point of a sandbox. Give it only what the lab needs: with a content kit the lab doesn't use the workspace at all, so an empty folder is enough. (`sbx` also blocks the home directory outright, with `mount "/Users/<you>" overlaps Sandboxes configuration, state or credentials`.)
 
 ```bash
 mkdir -p ~/sbx-lab && cd ~/sbx-lab
@@ -272,7 +272,7 @@ The kit declares `network-policy@1` (Docker Hub for image pulls, Open VSX for ex
 - **Instructions are no longer protected from the learner.** In labspace-infra the interface mounted them read-only. In a sandbox the agent user owns the VM anyway, so this was dropped.
 - **A set is a pinned artifact.** Bumping the Labspace kit means republishing every lab set that includes it. Keeping the content kit separate (and composing with `--kit`) avoids that, at the cost of two references.
 - **Kit content is not on the host.** With a content kit, the learner's project lives in the sandbox (`~/project`), so it is gone after `sbx rm`. Mount a host folder if it must be kept.
-- **The first run still mounts the current directory** as the workspace (the default for `sbx run`). Run from a dedicated, empty folder when using a content kit; `sbx` refuses to mount your home directory, because it overlaps the Sandboxes configuration, state and credentials.
+- **The first run still mounts the current directory** as the workspace (the default for `sbx run`). Run from a dedicated, empty folder when using a content kit, never from your home directory: whatever folder you start in is exposed to the sandbox.
 - **Pin by digest** the `dockersamples/labspace-interface` and `labspace-support-vscode-extension` base images in `labspace.dockerfile`.
 - **Init scripts.** labspace-infra ran `/init-scripts/*` in the configurator. The equivalent here would be running an optional `<workspace>/labspace/init.sh` in the install hook.
 - The `ttyd` workspace mode in the interface (`WORKSPACE_TYPE=ttyd`) shows the interface already supports a non-VS-Code terminal backend; not used here.
