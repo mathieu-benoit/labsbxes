@@ -10,9 +10,12 @@
 # python, go; NO Node), pinned here by the digest this was developed against.
 ARG BASE_IMAGE=docker.io/sbx/shell@sha256:89ed5d63def6bfb2373d408e3ab6ad55aa5c010f884a182a78299fcf85ea42d1
 
-# Published by labspace-infra (docker-bake.hcl). TODO: pin both by digest.
-ARG INTERFACE_IMAGE=dockersamples/labspace-interface:latest
-ARG EXTENSION_IMAGE=dockersamples/labspace-support-vscode-extension:latest
+# Published by labspace-infra (docker-bake.hcl), pinned to a release by tag and
+# index digest so a kit version always carries the same interface. To move to
+# a new labspace-infra release, update both lines together:
+#   docker buildx imagetools inspect dockersamples/labspace-interface:<tag> --format '{{.Manifest.Digest}}'
+ARG INTERFACE_IMAGE=dockersamples/labspace-interface:v0.32.0@sha256:7d9848ad2da9bb8bc51b279a4439bf8ba21bc8ddfb99175ac5b9d65264db8227
+ARG EXTENSION_IMAGE=dockersamples/labspace-support-vscode-extension:v0.32.0@sha256:a6685edeb1de044d92a8def430295c05e5aac821fefb882db0105717932e1333
 # The workload has no Node, so the overlay carries one. Checked to run on the
 # Debian 13 base (glibc is forward compatible).
 ARG NODE_IMAGE=node:24-bookworm-slim
