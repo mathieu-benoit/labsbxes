@@ -21,7 +21,7 @@ mkdir -p ~/sbx-lab && cd ~/sbx-lab
 ```
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.7 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.7 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.8 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.8 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 Then run `sbx ports hello-lab` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).
