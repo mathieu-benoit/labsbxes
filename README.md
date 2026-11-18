@@ -2,6 +2,20 @@
 
 Run a [Labspace](https://github.com/dockersamples/labspace-infra) (instructions on the left, VS Code on the right, Docker available to the learner) with `sbx run` instead of a six-container `docker compose up`. See [docs/architecture.md](docs/architecture.md) for diagrams of both setups.
 
+## Kits
+
+This repository publishes three kits to GitHub Container Registry. Each has its own README with its run command and the ports to pin:
+
+| Kit | Package | README |
+|---|---|---|
+| Labspace runtime: the interface, VS Code and a private Docker engine | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/README.md](kit/README.md) |
+| Hello Labspace: a minimal lab (content kit) | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/README.md](examples/hello-lab/README.md) |
+| Building Container Images: Best Practices (content kit) | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab` | [examples/building-images-lab/README.md](examples/building-images-lab/README.md) |
+
+A content kit always runs with the Labspace kit. Commands for all three are in [Published kits](#published-kits-github-actions).
+
+## Run from source
+
 The infrastructure is a single [Sandbox Kit](https://github.com/docker/sandbox-kit-spec) (v3 mixin) that layers onto the built-in `shell` agent.
 
 ```bash
