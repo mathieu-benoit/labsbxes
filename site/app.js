@@ -56,10 +56,10 @@
     var grid = el("ul", { "class": "catalog-grid" });
     state.kits.forEach(function (kit) {
       var meta = el("span", { "class": "catalog-card-meta" });
-      if (v) meta.appendChild(chip(v, true, "sell"));
+      if (v && kit.package) meta.appendChild(chip(v, true, "sell"));
       kit.chips.forEach(function (c) { meta.appendChild(chip(c)); });
       grid.appendChild(el("li", {}, [
-        el("a", { "class": "catalog-card", href: "#/kits/" + kit.id }, [
+        el("a", { "class": "catalog-card", href: kit.page ? "#/" + kit.id : "#/kits/" + kit.id }, [
           el("span", { "class": "catalog-card-icon" }, [icon(kit.icon)]),
           el("span", { "class": "catalog-card-body" }, [
             el("span", { "class": "catalog-card-title", text: kit.title }),
@@ -115,7 +115,7 @@
       var parts = href.split("#");
       var path = normalize(kit.dir + "/" + parts[0]);
       var match = state.kits.filter(function (k) {
-        return path === k.dir || path === k.dir + "/README.md";
+        return k.dir && (path === k.dir || path === k.dir + "/README.md");
       })[0];
       if (match) {
         a.setAttribute("href", "#/kits/" + match.id);
@@ -211,12 +211,51 @@
     });
   }
 
+  // --- Static page (an entry with "page" instead of "dir") -----------------
+
+  function renderPage(entry) {
+    document.title = entry.title + " · Labspace kits";
+    var back = el("a", { "class": "kit-back", href: "#/" }, [icon("arrow_back"), document.createTextNode("All kits")]);
+    var meta = el("div", { "class": "catalog-card-meta" });
+    entry.chips.forEach(function (c) { meta.appendChild(chip(c)); });
+    var header = el("header", { "class": "kit-header" }, [
+      el("span", { "class": "catalog-card-icon" }, [icon(entry.icon)]),
+      el("div", { "class": "kit-header-body" }, [
+        el("h1", { text: entry.title }),
+        el("p", { "class": "catalog-subtitle", text: entry.description }),
+        meta
+      ])
+    ]);
+    var body = el("article", { "class": "markdown page" }, [el("p", { "class": "loading", text: "Loading…" })]);
+    app.replaceChildren(back, header, body);
+    window.scrollTo(0, 0);
+
+    var cached = state.readmes[entry.id];
+    var load = cached ? Promise.resolve(cached) : fetch(entry.page, { cache: "no-cache" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); });
+    load.then(function (html) {
+      state.readmes[entry.id] = html;
+      if (location.hash !== "#/" + entry.id) return;
+      body.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target"] });
+      // Links into the repository follow the release the site was built from.
+      body.querySelectorAll("a[data-repo-path]").forEach(function (a) {
+        a.setAttribute("href", repoUrl("blob", a.getAttribute("data-repo-path")));
+      });
+      body.querySelectorAll("a[target=_blank]").forEach(function (a) { a.rel = "noopener"; });
+    }).catch(function () {
+      body.replaceChildren(el("p", { "class": "error", text: "Couldn't load this page." }));
+    });
+  }
+
   // --- Router --------------------------------------------------------------
 
   function route() {
     var m = location.hash.match(/^#\/kits\/([\w-]+)/);
-    var kit = m && state.kits.filter(function (k) { return k.id === m[1]; })[0];
-    if (kit) renderKit(kit); else renderCatalog();
+    var kit = m && state.kits.filter(function (k) { return k.dir && k.id === m[1]; })[0];
+    if (kit) { renderKit(kit); return; }
+    var p = location.hash.match(/^#\/([\w-]+)$/);
+    var page = p && state.kits.filter(function (k) { return k.page && k.id === p[1]; })[0];
+    if (page) renderPage(page); else renderCatalog();
   }
 
   Promise.all([getJSON("kits.json", null), getJSON("config.json", DEFAULTS)]).then(function (res) {

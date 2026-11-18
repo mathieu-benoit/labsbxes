@@ -20,13 +20,16 @@ root="$(cd "$here/.." && pwd)"
 rm -rf "$out"
 mkdir -p "$out"
 cp "$here/index.html" "$here/style.css" "$here/app.js" "$here/kits.json" "$out/"
+cp -r "$here/pages" "$out/pages"
 touch "$out/.nojekyll"
 
-# "id" and "dir" pairs, one kit per line, without needing jq.
+# "id" and "dir" pairs, one kit per line, without needing jq. Entries with a
+# "page" instead of a "dir" are static pages, already copied from site/pages/.
 python3 - "$here/kits.json" <<'PY' | while read -r id dir; do
 import json, sys
 for k in json.load(open(sys.argv[1], encoding="utf-8")):
-    print(k["id"], k["dir"])
+    if "dir" in k:
+        print(k["id"], k["dir"])
 PY
   dir="${dir%$'\r'}"
   if [ ! -f "$root/$dir/README.md" ]; then
