@@ -119,12 +119,13 @@ The published set is one ordinary mixin that pins both members by digest and car
 
 ## Published kits (GitHub Actions)
 
-[.github/workflows/publish-kits.yaml](.github/workflows/publish-kits.yaml) builds both kits for `linux/amd64` and `linux/arm64` and publishes them to this repository's container registry:
+[.github/workflows/publish-kits.yaml](.github/workflows/publish-kits.yaml) builds the kits for `linux/amd64` and `linux/arm64` and publishes them to this repository's container registry:
 
 | Kit | Reference | Source |
 |---|---|---|
 | Labspace runtime | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/](kit) |
 | `hello-lab` content | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/](examples/hello-lab) |
+| `building-images` content | `ghcr.io/mathieu-benoit/labsbxes/building-images` | [examples/building-images/](examples/building-images) |
 
 ```bash
 # from an empty folder
@@ -138,13 +139,13 @@ Then open the host port `sbx ports hello-lab` lists for sandbox port 3030.
 
 | Event | What it does |
 |---|---|
-| Pull request | Builds both kits to a local OCI layout and validates them with `kit-tck`; pushes nothing. |
+| Pull request | Builds all kits to a local OCI layout and validates them with `kit-tck`; pushes nothing. |
 | Push of a `v*` tag | Publishes `:<version from the kit's descriptor>` and `:latest`. A version that already exists is skipped, so a published version is immutable. |
 | Manual run (**Actions → publish-kits → Run workflow**) on `main` | Publishes `:edge` and `:sha-<short>`. On any other branch it only builds. |
 
 Commits to `main` don't publish anything on their own.
 
-The two kits are versioned **in lockstep**. To release, bump `version:` to the same value in both descriptors (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`), merge, then push the matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The workflow's first job fails the run if the two versions differ, or if the tag doesn't name them (`v0.2.0` must mean `0.2.0`). The `v` is only on the git tag; the published image tags have none (`:0.2.0`), as the kit spec requires.
+The kits are versioned **in lockstep**. To release, bump `version:` to the same value in every descriptor (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`, `examples/building-images/building-images.yaml`), merge, then push the matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The workflow's first job fails the run if the versions differ, or if the tag doesn't name them (`v0.2.0` must mean `0.2.0`). The `v` is only on the git tag; the published image tags have none (`:0.2.0`), as the kit spec requires.
 
 The workflow runs `kit-tck validate` (the specification's conformance checker, pinned and checksum-verified) every time: on pull requests against the built OCI layout, and after each publish against the artifact that actually reached the registry. The descriptors' `sourceUrl` becomes the `org.opencontainers.image.source` annotation, which is what links the packages to this repository.
 
