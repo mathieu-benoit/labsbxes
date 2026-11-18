@@ -3,7 +3,7 @@ name: publish-kits
 # Builds the two kits and publishes them to this repository's container registry
 # (GHCR), as ghcr.io/<owner>/<repo>/<kit>:
 #
-#   labspace       kit/                    the Labspace runtime (a mixin for the `shell` agent)
+#   labspace-kit   kit/                    the Labspace runtime (a mixin for the `shell` agent)
 #   hello-lab-kit  examples/hello-lab/     a lab's content, as a kit
 #
 # What gets pushed, by event:
@@ -100,7 +100,7 @@ jobs:
       matrix:
         include:
           - name: labspace
-            image: labspace
+            image: labspace-kit
             context: kit
             descriptor: kit/labspace.yaml
           - name: hello-lab
