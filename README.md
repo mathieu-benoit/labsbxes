@@ -125,7 +125,7 @@ The published set is one ordinary mixin that pins both members by digest and car
 |---|---|---|
 | Labspace runtime | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/](kit) |
 | `hello-lab` content | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/](examples/hello-lab) |
-| `building-images` content | `ghcr.io/mathieu-benoit/labsbxes/building-images` | [examples/building-images/](examples/building-images) |
+| `building-images-lab` content | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab` | [examples/building-images-lab/](examples/building-images-lab) |
 
 Run them from a **dedicated, empty folder**. `sbx run` mounts the current folder into the sandbox as its workspace, read-write. Started from your home directory, that would hand the sandbox your SSH keys, cloud and registry credentials, shell history and every other project, which defeats the point of a sandbox. Give it only what the lab needs: with a content kit the lab doesn't use the workspace at all, so an empty folder is enough. (`sbx` also blocks the home directory outright, with `mount "/Users/<you>" overlaps Sandboxes configuration, state or credentials`.)
 
@@ -147,10 +147,10 @@ sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.4 -p 8085:8085 
 sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.4 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.4 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
-`building-images` (pin 5050 for its Quote App tab):
+`building-images-lab` (pin 5050 for its Quote App tab):
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.4 --kit ghcr.io/mathieu-benoit/labsbxes/building-images:0.1.4 -p 8085:8085 -p 5050:5050 --name building-images
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.4 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.4 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
 Then open the host port `sbx ports <name>` lists for sandbox port 3030 (for example `sbx ports hello-lab`).
@@ -163,7 +163,7 @@ Then open the host port `sbx ports <name>` lists for sandbox port 3030 (for exam
 
 Commits to `main` don't publish anything on their own.
 
-The kits are versioned **in lockstep**. To release, bump `version:` to the same value in every descriptor (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`, `examples/building-images/building-images.yaml`), merge, then push the matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The workflow's first job fails the run if the versions differ, or if the tag doesn't name them (`v0.2.0` must mean `0.2.0`). The `v` is only on the git tag; the published image tags have none (`:0.2.0`), as the kit spec requires.
+The kits are versioned **in lockstep**. To release, bump `version:` to the same value in every descriptor (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`, `examples/building-images-lab/building-images-lab.yaml`), merge, then push the matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The workflow's first job fails the run if the versions differ, or if the tag doesn't name them (`v0.2.0` must mean `0.2.0`). The `v` is only on the git tag; the published image tags have none (`:0.2.0`), as the kit spec requires.
 
 The workflow runs `kit-tck validate` (the specification's conformance checker, pinned and checksum-verified) every time: on pull requests against the built OCI layout, and after each publish against the artifact that actually reached the registry. The descriptors' `sourceUrl` becomes the `org.opencontainers.image.source` annotation, which is what links the packages to this repository.
 
@@ -203,7 +203,7 @@ kit/
     opt/labspace/bin/    # labspace-init.sh, labspace-stage.sh, labspace-ide.sh, labspace-ui.sh
     home/agent/.local/share/code-server/User/settings.json
 examples/hello-lab/      # a tiny lab: a content repo, and (hello-lab.yaml/.dockerfile) a content kit
-examples/building-images/ # dockersamples/labspace-building-images as a content kit (Quote App on 5050)
+examples/building-images-lab/ # dockersamples/labspace-building-images as a content kit (Quote App on 5050)
 ```
 
 ### How a boot goes

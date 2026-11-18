@@ -2,5 +2,5 @@
 *
 !labspace
 !project
-!building-images.yaml
-!building-images.dockerfile
+!building-images-lab.yaml
+!building-images-lab.dockerfile
