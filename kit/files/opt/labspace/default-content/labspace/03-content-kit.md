@@ -77,7 +77,7 @@ From a terminal on your machine (these run on your host, not in the sandbox):
 sbx cp @@SANDBOX@@:/home/agent/project/my-lab ./my-lab
 ```
 
-Edit it, then start a new sandbox from an empty folder, composing the Labspace kit with your content kit:
+Edit it, then start a new sandbox from a dedicated, empty folder, composing the Labspace kit with your content kit. The folder you start from is mounted into the sandbox, so never start from your home directory, which would expose your keys and credentials to it:
 
 ```bash no-run-button
 sbx run shell --kit ./kit --kit ./my-lab -p 8085:8085 --name my-lab
