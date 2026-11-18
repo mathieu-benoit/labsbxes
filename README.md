@@ -112,19 +112,19 @@ A `kind: set` merges the two into one published kit. Publish both kits to a regi
 schemaVersion: "3"
 kind: set
 displayName: Hello Labspace (ready to run)
-version: "0.1.5"
+version: "0.1.6"
 kits:
-  - ref: docker.io/<you>/labspace:0.1.5
-  - ref: docker.io/<you>/hello-lab:0.1.5
+  - ref: docker.io/<you>/labspace:0.1.6
+  - ref: docker.io/<you>/hello-lab:0.1.6
 ```
 
 ```bash
-docker buildx build --builder kit-builder kit -f kit/labspace.yaml -t docker.io/<you>/labspace:0.1.5 --push
-docker buildx build --builder kit-builder examples/hello-lab -f examples/hello-lab/hello-lab.yaml -t docker.io/<you>/hello-lab:0.1.5 --push
-docker buildx build --builder kit-builder . -f hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.5 --push
+docker buildx build --builder kit-builder kit -f kit/labspace.yaml -t docker.io/<you>/labspace:0.1.6 --push
+docker buildx build --builder kit-builder examples/hello-lab -f examples/hello-lab/hello-lab.yaml -t docker.io/<you>/hello-lab:0.1.6 --push
+docker buildx build --builder kit-builder . -f hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.6 --push
 
 # learners:
-sbx run shell --kit docker.io/<you>/hello-lab-set:0.1.5 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run shell --kit docker.io/<you>/hello-lab-set:0.1.6 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 `kit-builder` is a `docker-container` builder (`docker buildx create --name kit-builder --driver docker-container --bootstrap`), as in the [spec README](https://github.com/docker/sandbox-kit-spec#building-a-kit).
@@ -152,19 +152,19 @@ Then start one of the labs from that folder.
 The built-in getting-started lab (Labspace kit only):
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.5 -p 8085:8085 --name labspace
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.6 -p 8085:8085 --name labspace
 ```
 
 `hello-lab` (pin 3000 for its tab link):
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.5 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.5 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.6 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.6 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 `building-images-lab` (pin 5050 for its Quote App tab):
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.5 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.5 -p 8085:8085 -p 5050:5050 --name building-images-lab
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.6 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.6 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
 Then open the host port `sbx ports <name>` lists for sandbox port 3030 (for example `sbx ports hello-lab`). That host port is picked by `sbx` and changes at every start; add `-p 3030:3030` to any of these commands to open the interface at http://localhost:3030 instead.
