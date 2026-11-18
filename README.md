@@ -189,6 +189,18 @@ sbx settings set kit.allowedSources '["docker.io/","dhi.io/","ghcr.io/mathieu-be
 
 New GHCR packages can start out private. After the first publish, check each package's visibility under the repository's **Packages** and make it public if learners should be able to pull it without signing in.
 
+### Landing page (GitHub Pages)
+
+[.github/workflows/publish-pages.yaml](.github/workflows/publish-pages.yaml) publishes a landing page at https://mathieu-benoit.github.io/labsbxes/ on every `v*` tag (or on a manual run): a blade per kit, each opening a rendering of that kit's README. The kits it lists, with their titles, icons and chips, are in [site/kits.json](site/kits.json). [site/build.sh](site/build.sh) assembles the site, and on a release the README links point to the tag and the page shows its version.
+
+To preview it locally:
+
+```bash
+bash site/build.sh /tmp/labsbxes-site main && python3 -m http.server 8000 --directory /tmp/labsbxes-site
+```
+
+One-time setup: under **Settings → Pages**, set the source to **GitHub Actions**. Then under **Settings → Environments → github-pages**, add a deployment tag rule for `v*`, so that release tags are allowed to deploy (by default only the default branch can).
+
 ## What changed compared to labspace-infra
 
 [docs/architecture.md](docs/architecture.md) has a diagram of each setup and a side-by-side summary.
@@ -218,6 +230,7 @@ kit/
     home/agent/.local/share/code-server/User/settings.json
 examples/hello-lab/      # a tiny lab: a content repo, and (hello-lab.yaml/.dockerfile) a content kit
 examples/building-images-lab/ # dockersamples/labspace-building-images as a content kit (Quote App on 5050)
+site/                    # the GitHub Pages landing page: kits.json, build.sh, index.html, app.js, style.css
 ```
 
 ### How a boot goes

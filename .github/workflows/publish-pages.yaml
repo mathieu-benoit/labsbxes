@@ -1,0 +1,64 @@
+name: publish-pages
+
+# Publishes the kits' landing page to GitHub Pages: a blade per kit (listed in
+# site/kits.json) that opens a rendering of the kit's README.md.
+#
+#   push of a v* tag    publishes the site for that release: README links point
+#                       to the tag, and the page shows its version
+#   manual run          publishes the site from the chosen branch, as is
+#
+# Pages must use "GitHub Actions" as its source (Settings → Pages).
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; a newer release supersedes a queued one.
+concurrency:
+  group: publish-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build the site
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          set -euo pipefail
+          version=""
+          if [ "$REF_TYPE" = "tag" ]; then
+            version="${REF_NAME#v}"
+          fi
+          bash site/build.sh "$RUNNER_TEMP/site" "$REF_NAME" "$version"
+
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write # deploy to GitHub Pages
+      id-token: write # verify the deployment comes from this workflow
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
