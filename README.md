@@ -124,13 +124,13 @@ The published set is one ordinary mixin that pins both members by digest and car
 | Kit | Reference | Source |
 |---|---|---|
 | Labspace runtime | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/](kit) |
-| `hello-lab` content | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/](examples/hello-lab) |
+| `hello-lab` content | `ghcr.io/mathieu-benoit/labsbxes/hello-lab-kit` | [examples/hello-lab/](examples/hello-lab) |
 
 ```bash
 # from an empty folder
 sbx run shell \
   --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.3 \
-  --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.3 \
+  --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab-kit:0.1.3 \
   -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 

@@ -3,8 +3,8 @@ name: publish-kits
 # Builds the two kits and publishes them to this repository's container registry
 # (GHCR), as ghcr.io/<owner>/<repo>/<kit>:
 #
-#   labspace   kit/                    the Labspace runtime (a mixin for the `shell` agent)
-#   hello-lab  examples/hello-lab/     a lab's content, as a kit
+#   labspace       kit/                    the Labspace runtime (a mixin for the `shell` agent)
+#   hello-lab-kit  examples/hello-lab/     a lab's content, as a kit
 #
 # What gets pushed, by event:
 #
@@ -100,9 +100,11 @@ jobs:
       matrix:
         include:
           - name: labspace
+            image: labspace
             context: kit
             descriptor: kit/labspace.yaml
           - name: hello-lab
+            image: hello-lab-kit
             context: examples/hello-lab
             descriptor: examples/hello-lab/hello-lab.yaml
 
@@ -115,7 +117,7 @@ jobs:
       - name: Resolve image name and tags
         id: meta
         env:
-          NAME: ${{ matrix.name }}
+          IMAGE_NAME: ${{ matrix.image }}
           DESCRIPTOR: ${{ matrix.descriptor }}
           EVENT: ${{ github.event_name }}
           REF: ${{ github.ref }}
@@ -130,7 +132,7 @@ jobs:
             exit 1
           fi
 
-          image="${REGISTRY}/${GITHUB_REPOSITORY,,}/${NAME}"
+          image="${REGISTRY}/${GITHUB_REPOSITORY,,}/${IMAGE_NAME}"
 
           publish=false
           tags="${image}:ci-build"
