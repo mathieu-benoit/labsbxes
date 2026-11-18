@@ -245,6 +245,68 @@ a { color: var(--primary); }
 .cmp-fate-kept { color: #2d9568; background: rgba(45, 149, 104, 0.12); }
 
 .cmp-tradeoffs li { margin-bottom: 0.4rem; }
+
+/* Component diagrams (inline SVG, colors from the theme tokens) */
+:root {
+  --dg-removed: #c0392b;
+  --dg-removed-bg: rgba(192, 57, 43, 0.07);
+  --dg-replaced: #b7791f;
+  --dg-replaced-bg: rgba(183, 121, 31, 0.08);
+  --dg-kept: #2d9568;
+  --dg-kept-bg: rgba(45, 149, 104, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --dg-removed: #ff8a7a; --dg-removed-bg: rgba(255, 138, 122, 0.08);
+    --dg-replaced: #f2c46d; --dg-replaced-bg: rgba(242, 196, 109, 0.08);
+    --dg-kept: #6fd3a5; --dg-kept-bg: rgba(111, 211, 165, 0.08);
+  }
+}
+:root[data-theme="dark"] {
+  --dg-removed: #ff8a7a; --dg-removed-bg: rgba(255, 138, 122, 0.08);
+  --dg-replaced: #f2c46d; --dg-replaced-bg: rgba(242, 196, 109, 0.08);
+  --dg-kept: #6fd3a5; --dg-kept-bg: rgba(111, 211, 165, 0.08);
+}
+
+.dg { margin: 0 0 1.75rem; }
+.dg figcaption { font-size: 0.92rem; margin-bottom: 0.6rem; }
+.dg figcaption .cmp-col-eyebrow { margin-right: 0.35rem; }
+.cmp-col-eyebrow-after { color: var(--primary); }
+.dg-scroll {
+  overflow-x: auto; border: 1px solid var(--border); border-radius: 0.85rem;
+  background: var(--surface); padding: 0.75rem;
+}
+.dg svg { display: block; width: 100%; min-width: 640px; height: auto; font-family: Inter, Helvetica, Arial, sans-serif; }
+.dg text { text-anchor: middle; }
+.dg .dg-label, .dg .dg-note { text-anchor: start; }
+
+.dg-frame { fill: var(--bg); stroke: var(--border); stroke-width: 1.5; }
+.dg-group { fill: none; stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.dg-sandbox { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 2; }
+.dg-actor { fill: var(--bg); stroke: var(--primary); stroke-width: 1.5; }
+.dg-box { fill: var(--bg); stroke: var(--border); stroke-width: 1.5; }
+.dg-primary { stroke: var(--primary); }
+.dg-dashed { stroke-dasharray: 5 4; stroke: var(--muted); fill: transparent; }
+.dg-kept { stroke: var(--dg-kept); fill: var(--dg-kept-bg); }
+.dg-removed { stroke: var(--dg-removed); fill: var(--dg-removed-bg); stroke-dasharray: 6 4; }
+.dg-replaced { stroke: var(--dg-replaced); fill: var(--dg-replaced-bg); stroke-dasharray: 6 4; }
+.dg-warn { stroke: var(--dg-removed); fill: var(--bg); }
+
+.dg-title { fill: var(--fg); font-size: 13px; font-weight: 600; }
+.dg-sub { fill: var(--muted); font-size: 11px; }
+.dg-label { fill: var(--muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.dg-label-primary { fill: var(--primary); }
+.dg-note { fill: var(--muted); font-size: 11px; font-style: italic; }
+.dg-line { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.dg-head { fill: var(--muted); }
+
+.dg-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.9rem; margin: 0.6rem 0 0; color: var(--muted); font-size: 0.78rem; }
+.dg-key { display: inline-block; width: 1.1rem; height: 0.7rem; margin-right: 0.35rem; vertical-align: -0.05rem; border-radius: 0.2rem; border: 1.5px solid; }
+.dg-key-removed { border-color: var(--dg-removed); border-style: dashed; background: var(--dg-removed-bg); }
+.dg-key-replaced { border-color: var(--dg-replaced); border-style: dashed; background: var(--dg-replaced-bg); }
+.dg-key-kept { border-color: var(--dg-kept); background: var(--dg-kept-bg); }
+.dg-key-primary { border-color: var(--primary); background: var(--bg); }
+.dg-key-dashed { border-color: var(--muted); border-style: dashed; }
 .cmp-more { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 2rem; }
 
 @media (prefers-color-scheme: dark) {

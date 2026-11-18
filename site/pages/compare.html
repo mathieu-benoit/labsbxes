@@ -49,6 +49,138 @@
   </div>
 </section>
 
+<h2>The main components</h2>
+
+<figure class="dg">
+  <figcaption><span class="cmp-col-eyebrow">Before</span> <code>docker compose up</code>: six containers on your host's engine</figcaption>
+  <div class="dg-scroll">
+    <svg viewBox="0 0 760 420" role="img" aria-labelledby="dg-before-title">
+      <title id="dg-before-title">labspace-infra: six containers on the host's Docker engine, with socket-proxy filtering the learner's Docker calls</title>
+      <!-- Learner -->
+      <rect class="dg-actor" x="12" y="38" width="132" height="40" rx="20"/>
+      <text class="dg-title" x="78" y="63">Learner</text>
+      <!-- Host -->
+      <rect class="dg-frame" x="160" y="8" width="588" height="404" rx="14"/>
+      <text class="dg-label" x="176" y="30">Host machine</text>
+      <!-- Compose stack -->
+      <rect class="dg-group" x="176" y="44" width="556" height="166" rx="10"/>
+      <text class="dg-label" x="190" y="62">docker compose up · 6 containers</text>
+      <rect class="dg-box dg-kept" x="190" y="72" width="168" height="54" rx="8"/>
+      <text class="dg-title" x="274" y="95">interface</text>
+      <text class="dg-sub" x="274" y="113">:3030 · instructions</text>
+      <rect class="dg-box dg-kept" x="370" y="72" width="168" height="54" rx="8"/>
+      <text class="dg-title" x="454" y="95">workspace</text>
+      <text class="dg-sub" x="454" y="113">:8085 · code-server</text>
+      <rect class="dg-box dg-replaced" x="550" y="72" width="168" height="54" rx="8"/>
+      <text class="dg-title" x="634" y="95">configurator</text>
+      <text class="dg-sub" x="634" y="113">git clone, keys</text>
+      <rect class="dg-box dg-removed" x="190" y="142" width="168" height="54" rx="8"/>
+      <text class="dg-title" x="274" y="165">port republisher</text>
+      <text class="dg-sub" x="274" y="183">socat per learner port</text>
+      <rect class="dg-box dg-removed" x="370" y="142" width="168" height="54" rx="8"/>
+      <text class="dg-title" x="454" y="165">socket-proxy</text>
+      <text class="dg-sub" x="454" y="183">filters the Docker API</text>
+      <rect class="dg-box dg-removed" x="550" y="142" width="168" height="54" rx="8"/>
+      <text class="dg-title" x="634" y="165">workspace-cleaner</text>
+      <text class="dg-sub" x="634" y="183">cleans up on down</text>
+      <!-- Volumes -->
+      <rect class="dg-box dg-removed" x="176" y="226" width="250" height="54" rx="8"/>
+      <text class="dg-title" x="301" y="249">5 volumes · 1 network</text>
+      <text class="dg-sub" x="301" y="267">content, instructions, socket</text>
+      <!-- Host engine -->
+      <rect class="dg-box dg-warn" x="176" y="296" width="556" height="46" rx="8"/>
+      <text class="dg-title" x="454" y="316">Host Docker engine</text>
+      <text class="dg-sub" x="454" y="333">shared with everything else on your machine</text>
+      <!-- Learner containers -->
+      <rect class="dg-box" x="176" y="356" width="556" height="42" rx="8"/>
+      <text class="dg-title" x="454" y="382">learner containers, labeled, on the host</text>
+      <!-- Arrows -->
+      <path class="dg-line" d="M144 58 C 166 58, 170 99, 188 99"/>
+      <polygon class="dg-head" points="182,95 182,103 190,99"/>
+      <path class="dg-line" d="M454 126 V140"/>
+      <polygon class="dg-head" points="450,134 458,134 454,142"/>
+      <path class="dg-line" d="M454 196 V294"/>
+      <polygon class="dg-head" points="450,288 458,288 454,296"/>
+      <text class="dg-note" x="462" y="250">learner's docker</text>
+      <path class="dg-line" d="M454 342 V354"/>
+      <polygon class="dg-head" points="450,348 458,348 454,356"/>
+    </svg>
+  </div>
+  <p class="dg-legend">
+    <span class="dg-key dg-key-removed"></span>removed
+    <span class="dg-key dg-key-replaced"></span>replaced by two boot scripts
+    <span class="dg-key dg-key-kept"></span>kept
+  </p>
+</figure>
+
+<figure class="dg">
+  <figcaption><span class="cmp-col-eyebrow cmp-col-eyebrow-after">After</span> <code>sbx run</code>: one microVM per lab, with its own Docker engine</figcaption>
+  <div class="dg-scroll">
+    <svg viewBox="0 0 760 420" role="img" aria-labelledby="dg-after-title">
+      <title id="dg-after-title">This repo: one Docker Sandbox composed from kits, running the interface, code-server and a private Docker engine</title>
+      <!-- Learner -->
+      <rect class="dg-actor" x="12" y="38" width="132" height="40" rx="20"/>
+      <text class="dg-title" x="78" y="63">Learner</text>
+      <!-- Host -->
+      <rect class="dg-frame" x="160" y="8" width="588" height="404" rx="14"/>
+      <text class="dg-label" x="176" y="30">Host machine</text>
+      <rect class="dg-box" x="176" y="38" width="556" height="40" rx="8"/>
+      <text class="dg-title" x="454" y="63">127.0.0.1 ports, published by sbx: 3030 · 8085 · app port</text>
+      <!-- Sandbox -->
+      <rect class="dg-sandbox" x="176" y="94" width="556" height="304" rx="12"/>
+      <text class="dg-label dg-label-primary" x="190" y="114">Docker Sandbox · microVM</text>
+      <!-- Kits -->
+      <text class="dg-note" x="190" y="138">composed from kits</text>
+      <rect class="dg-box dg-dashed" x="190" y="146" width="196" height="40" rx="8"/>
+      <text class="dg-title" x="288" y="171">content kit (optional)</text>
+      <rect class="dg-box dg-primary" x="190" y="192" width="196" height="40" rx="8"/>
+      <text class="dg-title" x="288" y="217">Labspace kit</text>
+      <rect class="dg-box" x="190" y="238" width="196" height="40" rx="8"/>
+      <text class="dg-title" x="288" y="263">shell workload</text>
+      <text class="dg-note" x="190" y="302">sbx rm deletes the VM</text>
+      <text class="dg-note" x="190" y="318">and everything in it</text>
+      <!-- Processes -->
+      <rect class="dg-box dg-kept" x="404" y="132" width="150" height="54" rx="8"/>
+      <text class="dg-title" x="479" y="155">interface</text>
+      <text class="dg-sub" x="479" y="173">:3030 · instructions</text>
+      <rect class="dg-box dg-kept" x="566" y="132" width="152" height="54" rx="8"/>
+      <text class="dg-title" x="642" y="155">code-server</text>
+      <text class="dg-sub" x="642" y="173">:8085 · + extension</text>
+      <!-- Private engine -->
+      <rect class="dg-box dg-primary" x="404" y="206" width="314" height="46" rx="8"/>
+      <text class="dg-title" x="561" y="226">Private Docker engine</text>
+      <text class="dg-sub" x="561" y="243">dockerd@1 · only exists in this VM</text>
+      <rect class="dg-box" x="404" y="266" width="314" height="42" rx="8"/>
+      <text class="dg-title" x="561" y="292">learner containers</text>
+      <!-- Network policy -->
+      <rect class="dg-box dg-dashed" x="190" y="336" width="528" height="46" rx="8"/>
+      <text class="dg-title" x="454" y="356">Network policy allow-list</text>
+      <text class="dg-sub" x="454" y="373">Docker Hub for image pulls, Open VSX for extensions</text>
+      <!-- Arrows -->
+      <path class="dg-line" d="M144 58 H174"/>
+      <polygon class="dg-head" points="168,54 168,62 176,58"/>
+      <path class="dg-line" d="M479 78 V130"/>
+      <polygon class="dg-head" points="475,124 483,124 479,132"/>
+      <path class="dg-line" d="M642 78 V130"/>
+      <polygon class="dg-head" points="638,124 646,124 642,132"/>
+      <path class="dg-line" d="M386 212 C 396 212, 392 159, 398 159"/>
+      <polygon class="dg-head" points="396,155 396,163 404,159"/>
+      <path class="dg-line" d="M386 258 C 396 258, 392 229, 398 229"/>
+      <polygon class="dg-head" points="396,225 396,233 404,229"/>
+      <path class="dg-line" d="M642 186 V204"/>
+      <polygon class="dg-head" points="638,198 646,198 642,206"/>
+      <text class="dg-note" x="650" y="199">docker</text>
+      <path class="dg-line" d="M561 252 V264"/>
+      <polygon class="dg-head" points="557,258 565,258 561,266"/>
+    </svg>
+  </div>
+  <p class="dg-legend">
+    <span class="dg-key dg-key-kept"></span>kept from labspace-infra
+    <span class="dg-key dg-key-primary"></span>new with Docker Sandboxes
+    <span class="dg-key dg-key-dashed"></span>optional or a boundary
+  </p>
+</figure>
+
 <h2>At a glance</h2>
 <div class="table-wrap">
   <table>
