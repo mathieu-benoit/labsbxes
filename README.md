@@ -184,6 +184,7 @@ kit/
     opt/labspace/bin/    # labspace-init.sh, labspace-stage.sh, labspace-ide.sh, labspace-ui.sh
     home/agent/.local/share/code-server/User/settings.json
 examples/hello-lab/      # a tiny lab: a content repo, and (hello-lab.yaml/.dockerfile) a content kit
+examples/building-images/ # dockersamples/labspace-building-images as a content kit (Quote App on 5050)
 ```
 
 ### How a boot goes

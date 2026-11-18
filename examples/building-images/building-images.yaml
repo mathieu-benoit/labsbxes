@@ -1,0 +1,38 @@
+# syntax=docker/sandbox-kit:3
+#
+# The "Building Container Images: Best Practices" lab as a content kit. Its
+# labspace/ and project/ folders are copied as they are from
+# https://github.com/dockersamples/labspace-building-images; everything that
+# runs them comes from the Labspace kit (../../kit).
+#
+#   sbx run shell --kit <labspace kit> --kit <this kit>
+schemaVersion: "3"
+kind: mixin
+
+displayName: Building Container Images (content)
+description: >-
+  The "Building Container Images: Best Practices" lab: layer caching,
+  multi-stage builds, base images and build secrets, to be run by the Labspace
+  kit.
+
+version: "0.1.3"
+
+# Becomes the org.opencontainers.image.source annotation, which is what links
+# a published GHCR package to this repository.
+sourceUrl: https://github.com/mathieu-benoit/labsbxes
+
+# The Labspace kit provides `labspace`. Composing this kit without it fails at
+# resolution instead of producing a sandbox with files and nothing to show them.
+requires: ["labspace >= 0.1.0"]
+
+# One lab per sandbox: a second content kit provides the same name, and the
+# runtime refuses the composition.
+provides: ["labspace-content@0.1.3"]
+
+capabilities:
+  # The lab runs its Quote App on port 5050 (docker run -p 5050:5050) and opens
+  # it in a tab. sbx picks the host port (sbx ports <name>); -p 5050:5050 pins
+  # it for the tab.
+  - type: com.docker.sandbox/port@1
+    config:
+      container: 5050
