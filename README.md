@@ -167,7 +167,7 @@ sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.4 --kit ghcr.io
 sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.4 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.4 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
-Then open the host port `sbx ports <name>` lists for sandbox port 3030 (for example `sbx ports hello-lab`).
+Then open the host port `sbx ports <name>` lists for sandbox port 3030 (for example `sbx ports hello-lab`). That host port is picked by `sbx` and changes at every start; add `-p 3030:3030` to any of these commands to open the interface at http://localhost:3030 instead.
 
 | Event | What it does |
 |---|---|

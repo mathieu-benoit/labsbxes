@@ -36,7 +36,7 @@ With a lab packaged as a content kit:
 sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.4 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.4 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
-Then run `sbx ports <name>` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030.
+Then run `sbx ports <name>` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).
 
 - Re-attach with `sbx run --name <name>`, stop with `sbx stop <name>`, remove everything with `sbx rm <name>`.
 - Add `-d` to start detached. The kit declares `long-running@1`, so the lab keeps running either way.

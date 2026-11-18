@@ -24,12 +24,13 @@ mkdir -p ~/sbx-lab && cd ~/sbx-lab
 sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.4 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.4 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
-Then run `sbx ports hello-lab` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030.
+Then run `sbx ports hello-lab` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).
 
 | Pin | Why |
 |---|---|
 | `-p 8085:8085` | Required: the interface embeds the IDE at `http://localhost:8085` |
 | `-p 3000:3000` | For the lab's tab link to `http://localhost:3000` (the nginx container) |
+| `-p 3030:3030` | Optional: open the interface at `http://localhost:3030` instead of looking up its host port with `sbx ports` |
 
 Your edits in the IDE stay in the sandbox and survive `sbx stop` and `sbx run --name hello-lab`, but not `sbx rm hello-lab`.
 
