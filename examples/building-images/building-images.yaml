@@ -2,8 +2,8 @@
 #
 # The "Building Container Images: Best Practices" lab as a content kit. Its
 # labspace/ and project/ folders are copied as they are from
-# https://github.com/dockersamples/labspace-building-images (Apache-2.0, see
-# LICENSE); everything that runs them comes from the Labspace kit (../../kit).
+# https://github.com/dockersamples/labspace-building-images; everything that
+# runs them comes from the Labspace kit (../../kit).
 #
 #   sbx run shell --kit <labspace kit> --kit <this kit>
 schemaVersion: "3"

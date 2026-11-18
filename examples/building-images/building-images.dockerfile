@@ -6,4 +6,3 @@
 FROM scratch
 COPY labspace /opt/labspace/content/labspace
 COPY project /opt/labspace/content/project
-COPY LICENSE /opt/labspace/content/LICENSE

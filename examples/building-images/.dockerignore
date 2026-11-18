@@ -2,6 +2,5 @@
 *
 !labspace
 !project
-!LICENSE
 !building-images.yaml
 !building-images.dockerfile
