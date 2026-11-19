@@ -19,7 +19,7 @@ root="$(cd "$here/.." && pwd)"
 
 rm -rf "$out"
 mkdir -p "$out"
-cp "$here/index.html" "$here/style.css" "$here/app.js" "$here/kits.json" "$out/"
+cp "$here/index.html" "$here/style.css" "$here/app.js" "$here/kits.json" "$here/favicon.svg" "$out/"
 cp -r "$here/pages" "$out/pages"
 touch "$out/.nojekyll"
 
