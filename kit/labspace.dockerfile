@@ -14,8 +14,8 @@ ARG BASE_IMAGE=docker.io/sbx/shell@sha256:89ed5d63def6bfb2373d408e3ab6ad55aa5c01
 # index digest so a kit version always carries the same interface. To move to
 # a new labspace-infra release, update both lines together:
 #   docker buildx imagetools inspect dockersamples/labspace-interface:<tag> --format '{{.Manifest.Digest}}'
-ARG INTERFACE_IMAGE=dockersamples/labspace-interface:v0.32.0@sha256:7d9848ad2da9bb8bc51b279a4439bf8ba21bc8ddfb99175ac5b9d65264db8227
-ARG EXTENSION_IMAGE=dockersamples/labspace-support-vscode-extension:v0.32.0@sha256:a6685edeb1de044d92a8def430295c05e5aac821fefb882db0105717932e1333
+ARG INTERFACE_IMAGE=dockersamples/labspace-interface:v0.33.0@sha256:a9a7c4d23ed0c08585f6eef619684f2cd50465eca145d4d4a9012815f2afadb7
+ARG EXTENSION_IMAGE=dockersamples/labspace-support-vscode-extension:v0.33.0@sha256:2044d38ff56a23cca6a4890ed0e9ce2f9ec7c1c7f38cbc69fdc5128df1cd52d7
 # The workload has no Node, so the overlay carries one. Checked to run on the
 # Debian 13 base (glibc is forward compatible).
 ARG NODE_IMAGE=node:24-bookworm-slim
