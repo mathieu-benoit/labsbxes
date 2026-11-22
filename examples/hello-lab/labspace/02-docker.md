@@ -18,7 +18,32 @@ Publish a port and open it from your browser:
 docker run -d --rm --name web -p 3000:80 nginx:alpine
 ```
 
+Check that it runs:
+
+```bash
+docker ps
+```
+
+The `web` container is listed with its published port, something like:
+
+```bash no-run-button no-copy-button
+CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS                  NAMES
+d87ba3d4ba22   nginx:alpine   "/docker-entrypoint.…"   10 seconds ago   Up 9 seconds    0.0.0.0:3000->80/tcp   web
+```
+
 Then open :tabLink[the app]{href="http://localhost:3000" title="App" id="app"}. It opens as a new tab next to the IDE.
 
 > [!NOTE]
 > The tab loads `localhost:3000` on your machine, so the sandbox has to publish its port 3000 on your port 3000: start it with `-p 3000:3000`. Without that flag, port 3000 is still published, because the kits declare it (`port@1`), but on a random host port, which `sbx port ls <sandbox name>` shows.
+
+To read a container's logs, replace `<container>` with its name, here `web`:
+
+```bash no-run-button
+docker logs <container>
+```
+
+Stop the server when you are done. It was started with `--rm`, so stopping it also removes it:
+
+```bash
+docker stop web
+```
