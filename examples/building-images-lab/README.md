@@ -24,13 +24,13 @@ mkdir -p ~/sbx-lab && cd ~/sbx-lab
 sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.10 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.10 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
-Then run `sbx ports building-images-lab` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).
+Then run `sbx port ls building-images-lab` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).
 
 | Pin | Why |
 |---|---|
 | `-p 8085:8085` | Required: the interface embeds the IDE at `http://localhost:8085` |
 | `-p 5050:5050` | For the lab's Quote App tab at `http://localhost:5050` |
-| `-p 3030:3030` | Optional: open the interface at `http://localhost:3030` instead of looking up its host port with `sbx ports` |
+| `-p 3030:3030` | Optional: open the interface at `http://localhost:3030` instead of looking up its host port with `sbx port ls` |
 
 Your edits in the IDE stay in the sandbox and survive `sbx stop` and `sbx run --name building-images-lab`, but not `sbx rm building-images-lab`.
 

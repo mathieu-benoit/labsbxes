@@ -55,7 +55,7 @@ provides: ["labspace-content@1.0.0"]
 
 # If the lab runs an app the learner opens in a browser, declare its port:
 # it is published as soon as the sandbox is created, on a host port that sbx
-# picks (sbx ports <name>).
+# picks (sbx port ls <name>).
 # capabilities:
 #   - type: com.docker.sandbox/port@1
 #     config:
@@ -81,7 +81,7 @@ Edit it, then start a new sandbox from a dedicated, empty folder, composing the 
 
 ```bash no-run-button
 sbx run shell --kit ./kit --kit ./my-lab -p 8085:8085 --name my-lab
-sbx ports my-lab
+sbx port ls my-lab
 ```
 
 Open the host port listed for sandbox port 3030.

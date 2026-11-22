@@ -31,7 +31,7 @@ capabilities:
   # opens it in a tab. The lab declares that port itself rather than relying on
   # the Labspace kit's appPort default: it is still published if appPort is
   # changed, and the two entries are one publication when they match.
-  # sbx picks the host port (sbx ports <name>); -p 3000:3000 pins it for the tab.
+  # sbx picks the host port (sbx port ls <name>); -p 3000:3000 pins it for the tab.
   - type: com.docker.sandbox/port@1
     config:
       container: 3000

@@ -11,3 +11,5 @@ sections:
     contentPath: 01-welcome.md
   - title: Docker inside the sandbox
     contentPath: 02-docker.md
+  - title: Authoring features
+    contentPath: 03-features.md

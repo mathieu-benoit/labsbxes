@@ -30,7 +30,7 @@ Learners then run it from a dedicated, empty folder. The folder they start from 
 ```bash no-run-button
 mkdir -p ~/sbx-lab && cd ~/sbx-lab
 sbx run shell --kit docker.io/YOU/my-lab-set:1.0.0 -p 8085:8085 --name my-lab
-sbx ports my-lab
+sbx port ls my-lab
 ```
 
 and open the host port listed for sandbox port 3030.
