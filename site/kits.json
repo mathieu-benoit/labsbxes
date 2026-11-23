@@ -42,6 +42,20 @@
     ]
   },
   {
+    "id": "dhi-launch",
+    "url": "https://mathieu-benoit.github.io/dhi-launch/sbx.html",
+    "icon": "verified_user",
+    "title": "Hardened Images Launch Lab",
+    "description": "A lab from its own repository, built on these kits: the Labspace kit with the Docker Scout kit and the lab's content kit, also published as a single kit set.",
+    "chips": [
+      "external",
+      "kit set",
+      "docker scout",
+      "dhi",
+      "port 5001"
+    ]
+  },
+  {
     "id": "compare",
     "page": "pages/compare.html",
     "icon": "compare_arrows",

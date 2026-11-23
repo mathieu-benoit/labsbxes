@@ -191,7 +191,7 @@ New GHCR packages can start out private. After the first publish, check each pac
 
 ### Landing page (GitHub Pages)
 
-[.github/workflows/publish-pages.yaml](.github/workflows/publish-pages.yaml) publishes a landing page at https://mathieu-benoit.github.io/labsbxes/ on every `v*` tag (or on a manual run): a blade per kit, each opening a rendering of that kit's README. The blades it lists, with their titles, icons and chips, are in [site/kits.json](site/kits.json): one per kit, plus a page on what's different from labspace-infra ([site/pages/compare.html](site/pages/compare.html)). [site/build.sh](site/build.sh) assembles the site, and on a release the README links point to the tag and the page shows its version.
+[.github/workflows/publish-pages.yaml](.github/workflows/publish-pages.yaml) publishes a landing page at https://mathieu-benoit.github.io/labsbxes/ on every `v*` tag (or on a manual run): a blade per kit, each opening a rendering of that kit's README. The blades it lists, with their titles, icons and chips, are in [site/kits.json](site/kits.json): one per kit, a page on what's different from labspace-infra ([site/pages/compare.html](site/pages/compare.html)), and labs published elsewhere that use these kits (an entry with a `url`, opened in a new tab), such as the [Hardened Images Launch Lab](https://mathieu-benoit.github.io/dhi-launch/sbx.html). [site/build.sh](site/build.sh) assembles the site, and on a release the README links point to the tag and the page shows its version.
 
 To preview it locally:
 
