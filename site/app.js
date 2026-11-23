@@ -58,15 +58,20 @@
       var meta = el("span", { "class": "catalog-card-meta" });
       if (v && kit.package) meta.appendChild(chip(v, true, "sell"));
       kit.chips.forEach(function (c) { meta.appendChild(chip(c)); });
+      // An entry with "url" is a lab published elsewhere: the card opens it in
+      // a new tab instead of routing inside this site.
+      var link = kit.url
+        ? { "class": "catalog-card", href: kit.url, target: "_blank", rel: "noopener" }
+        : { "class": "catalog-card", href: kit.page ? "#/" + kit.id : "#/kits/" + kit.id };
       grid.appendChild(el("li", {}, [
-        el("a", { "class": "catalog-card", href: kit.page ? "#/" + kit.id : "#/kits/" + kit.id }, [
+        el("a", link, [
           el("span", { "class": "catalog-card-icon" }, [icon(kit.icon)]),
           el("span", { "class": "catalog-card-body" }, [
             el("span", { "class": "catalog-card-title", text: kit.title }),
             el("span", { "class": "catalog-card-desc", text: kit.description }),
             meta
           ]),
-          icon("arrow_forward", "catalog-card-arrow")
+          icon(kit.url ? "open_in_new" : "arrow_forward", "catalog-card-arrow")
         ])
       ]));
     });
