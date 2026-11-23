@@ -20,10 +20,10 @@ The infrastructure is a single [Sandbox Kit](https://github.com/docker/sandbox-k
 
 ```bash
 sbx run shell --kit ./kit -p 8085:8085 -p 3000:3000 --name my-lab ./examples/hello-lab
-sbx ports my-lab
+sbx port ls my-lab
 ```
 
-Then open the interface: `http://127.0.0.1:<HOST PORT>/`, with the host port `sbx ports` lists for sandbox port 3030.
+Then open the interface: `http://127.0.0.1:<HOST PORT>/`, with the host port `sbx port ls` lists for sandbox port 3030.
 
 - `./examples/hello-lab` is the **content repo**, mounted as the sandbox workspace. It has the same layout as any labspace-infra content repo: `labspace/` (`labspace.yaml` + markdown) and `project/` (what the IDE opens).
 - The kit publishes its ports itself (see [Ports](#ports-published-by-the-kit-or-pinned-by-you)). `-p` only pins a host port where something expects a fixed `localhost` address:
@@ -36,7 +36,7 @@ Then open the interface: `http://127.0.0.1:<HOST PORT>/`, with the host port `sb
 
 ### Ports: published by the kit, or pinned by you
 
-The kit declares the ports the sandbox serves with the [`port@1`](https://github.com/docker/sandbox-kit-spec/blob/main/docs/spec/capabilities/com.docker.sandbox/port%401.md) capability (3030, 8085 and `appPort`), so they are published as soon as the sandbox is created, with no `sbx ports` command. A kit only names the **sandbox** port. The **host** port is chosen by `sbx`: a free one on `127.0.0.1`, chosen again at every start. The spec forbids a kit from pinning it, so that two shared kits can't ask for the same one. When the host port matters, you pin it yourself with `-p` (or `sbx ports --publish`).
+The kit declares the ports the sandbox serves with the [`port@1`](https://github.com/docker/sandbox-kit-spec/blob/main/docs/spec/capabilities/com.docker.sandbox/port%401.md) capability (3030, 8085 and `appPort`), so they are published as soon as the sandbox is created, with no `sbx port publish` command. A kit only names the **sandbox** port. The **host** port is chosen by `sbx`: a free one on `127.0.0.1`, chosen again at every start. The spec forbids a kit from pinning it, so that two shared kits can't ask for the same one. When the host port matters, you pin it yourself with `-p` (or `sbx port publish`).
 
 ```mermaid
 graph LR
@@ -79,7 +79,7 @@ graph LR
     style You fill:#fff,stroke:#1D63ED,color:#00084D
 ```
 
-`sbx ports my-lab` lists what `sbx` picked (for example `127.0.0.1:60036 -> 3030`). The interface works from there, but its IDE panel loads `http://localhost:8085`, a fixed address, which is why every command here pins 8085. Without it the panel stays blank.
+`sbx port ls my-lab` lists what `sbx` picked (for example `127.0.0.1:60036 -> 3030`). The interface works from there, but its IDE panel loads `http://localhost:8085`, a fixed address, which is why every command here pins 8085. Without it the panel stays blank.
 
 ### Without any content
 
@@ -167,7 +167,7 @@ sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.10 --kit ghcr.i
 sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.10 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.10 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
-Then open the host port `sbx ports <name>` lists for sandbox port 3030 (for example `sbx ports hello-lab`). That host port is picked by `sbx` and changes at every start; add `-p 3030:3030` to any of these commands to open the interface at http://localhost:3030 instead.
+Then open the host port `sbx port ls <name>` lists for sandbox port 3030 (for example `sbx port ls hello-lab`). That host port is picked by `sbx` and changes at every start; add `-p 3030:3030` to any of these commands to open the interface at http://localhost:3030 instead.
 
 | Event | What it does |
 |---|---|
@@ -209,7 +209,7 @@ One-time setup: under **Settings → Pages**, set the source to **GitHub Actions
 |---|---|---|
 | `socket-proxy` | **Removed** | The sandbox is a microVM with its own Docker engine (`dockerd@1`). The learner's `docker` never reaches the host engine, so there is nothing to filter, label, allowlist or remap. Bind mounts of the project folder just work, since the engine and the files share a filesystem. |
 | `workspace-cleaner` | **Removed** | The engine store lives in the sandbox. `sbx rm` deletes every container, volume, network and image the lab created. |
-| `host-port-republisher` | **Removed** | Its job was bridging "container publishes a port" to "localhost on the host". Ports are now published by the runtime (`port@1`, `sbx ports`). |
+| `host-port-republisher` | **Removed** | Its job was bridging "container publishes a port" to "localhost on the host". Ports are now published by the runtime (`port@1`, `sbx port ls`). |
 | `configurator` | **Replaced by two small scripts** | `labspace-init.sh` (once: keypair, dirs) and `labspace-stage.sh` (every boot: copy `labspace/` to the instructions dir, write metadata). No git clone, no tarball, no volumes: the content is the workspace, or a content kit. |
 | `interface` | **Kept, unchanged** | Reused from the published `dockersamples/labspace-interface` image (pinned to labspace-infra v0.33.0 by digest in `labspace.dockerfile`), copied into the overlay at build time. The built-in `shell` kit (Debian 13) has no Node, so the overlay also carries the `node` binary from `node:24-bookworm-slim`. |
 | `workspace` (code-server) | **Kept, built into the overlay** | Same approach as the `code-server` kit in sbx-kits-contrib: pinned install at build time, no download at create. |
@@ -249,7 +249,7 @@ Logs: `sbx exec my-lab -- cat /tmp/labspace-ui.log /tmp/labspace-ide.log`.
 | Arg | Default | Meaning |
 |---|---|---|
 | `devMode` | `false` | `--kit-arg devMode=true` reads `<workspace>/labspace` live, so editing a markdown file on the host and reloading the page is enough. |
-| `appPort` | `3000` | Extra port published for an app the learner runs, on a random host port (`sbx ports <name>`). For lab links such as `:tabLink{href="http://localhost:3000"}` to work, also pin it: `-p 3000:3000`. `--kit-arg appPort=8080` changes the port. |
+| `appPort` | `3000` | Extra port published for an app the learner runs, on a random host port (`sbx port ls <name>`). For lab links such as `:tabLink{href="http://localhost:3000"}` to work, also pin it: `-p 3000:3000`. `--kit-arg appPort=8080` changes the port. |
 | `codeServerVersion` | `4.140.0` | Build-time pin. |
 
 Egress is limited to Docker Hub (for image pulls) and the Open VSX marketplace. A lab that needs more declares it in its own network policy (`sbx policy`), or in a content kit.
@@ -268,7 +268,7 @@ Tested with sbx 0.53 on Windows, using `examples/hello-lab`:
 | Private Docker engine inside the sandbox (`docker info`) | Pass |
 | `port@1` publishing (`appPort` 3000 → ephemeral host port; 3030/8085 pinned with `-p`) | Pass |
 | Fresh sandbox with **no `-p`**: 3030, 8085 and 3000 are published at create on ephemeral `127.0.0.1` ports (60023, 60024, 60025), the interface answers on its port, and `sbx stop` then `sbx run --name` gives new ones (60026, 60027, 60028) | Pass |
-| The `name` labels set on the `port@1` entries in `sbx ports` | Not shown by sbx 0.53 |
+| The `name` labels set on the `port@1` entries in `sbx port ls` | Not shown by sbx 0.54 |
 | Only `-p 8085:8085` pinned: the interface opened on its ephemeral port (`127.0.0.1:60036`), the IDE panel loaded from `localhost:8085`, and Run typed the command into the IDE terminal | Pass |
 | Content kit declaring its own `port@1` (hello-lab, 3000): `sbx kit inspect` reports `Published: 1 ports`; with `--kit-arg appPort=8080` both 8080 and 3000 are published, and nginx started on 3000 answers on its ephemeral host port; with the default `appPort` the two 3000 entries are one publication | Pass |
 | `docker pull` / `docker run -p 3000:80 nginx:alpine` inside the sandbox, reached from the host through the `appPort` binding | Pass |

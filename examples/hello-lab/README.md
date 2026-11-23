@@ -2,7 +2,7 @@
 
 `ghcr.io/mathieu-benoit/labsbxes/hello-lab`
 
-A minimal lab, packaged as a content kit for the [Labspace kit](../../kit). It shows the two things a Labspace on Docker Sandboxes gives the learner: instructions with **Run** buttons that type into the IDE terminal, and a private Docker engine inside the sandbox, with an nginx container opened in a tab.
+A minimal lab, packaged as a content kit for the [Labspace kit](../../kit). It shows the two things a Labspace on Docker Sandboxes gives the learner: instructions with **Run** buttons that type into the IDE terminal, and a private Docker engine inside the sandbox, with an nginx container opened in a tab. A third section tours the authoring features a lab can use.
 
 The kit only carries the lab's content (`labspace/` and `project/`), so it always runs together with the Labspace kit.
 
@@ -24,13 +24,13 @@ mkdir -p ~/sbx-lab && cd ~/sbx-lab
 sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.10 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.10 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
-Then run `sbx ports hello-lab` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).
+Then run `sbx port ls hello-lab` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).
 
 | Pin | Why |
 |---|---|
 | `-p 8085:8085` | Required: the interface embeds the IDE at `http://localhost:8085` |
 | `-p 3000:3000` | For the lab's tab link to `http://localhost:3000` (the nginx container) |
-| `-p 3030:3030` | Optional: open the interface at `http://localhost:3030` instead of looking up its host port with `sbx ports` |
+| `-p 3030:3030` | Optional: open the interface at `http://localhost:3030` instead of looking up its host port with `sbx port ls` |
 
 Your edits in the IDE stay in the sandbox and survive `sbx stop` and `sbx run --name hello-lab`, but not `sbx rm hello-lab`.
 
@@ -40,6 +40,7 @@ Your edits in the IDE stay in the sandbox and survive `sbx stop` and `sbx run --
 |---|---|
 | Welcome | The instructions and the IDE are two processes in the same microVM |
 | Docker inside the sandbox | The sandbox's own engine, bind mounts, and a published port opened in a tab |
+| Authoring features | What a lab author can use, as in [labspace-starter](https://github.com/dockersamples/labspace-starter): code blocks with or without **Run** and **Copy**, saving a file, file and tab links, and custom variables |
 
 ## Source
 

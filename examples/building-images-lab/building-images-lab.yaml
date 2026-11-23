@@ -31,7 +31,7 @@ provides: ["labspace-content@0.1.10"]
 
 capabilities:
   # The lab runs its Quote App on port 5050 (docker run -p 5050:5050) and opens
-  # it in a tab. sbx picks the host port (sbx ports <name>); -p 5050:5050 pins
+  # it in a tab. sbx picks the host port (sbx port ls <name>); -p 5050:5050 pins
   # it for the tab.
   - type: com.docker.sandbox/port@1
     config:
