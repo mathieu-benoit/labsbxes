@@ -24,6 +24,12 @@ mkdir -p ~/sbx-lab && cd ~/sbx-lab
 sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
+Or, as a single reference, its kit set (`ghcr.io/mathieu-benoit/labsbxes/hello-lab-set`), which merges the `shell` sandbox, the Labspace kit and this kit into one workload:
+
+```bash
+sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab-set:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
+```
+
 Then run `sbx port ls hello-lab` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).
 
 | Pin | Why |
@@ -49,5 +55,6 @@ This folder is both a content repo and a content kit:
 - [labspace/](labspace) and [project/](project): the lab, in the labspace-infra layout
 - [hello-lab.yaml](hello-lab.yaml): the descriptor, a mixin that `requires` the Labspace kit, `provides` `labspace-content` and declares port 3000
 - [hello-lab.dockerfile](hello-lab.dockerfile): copies the two folders to `/opt/labspace/content`
+- [set/hello-lab-set.yaml](set/hello-lab-set.yaml): the kit set, `shell` + the Labspace kit + this kit, published as `hello-lab-set`
 
 From a clone of the repository, run it from source with `sbx run shell --kit ./kit --kit ./examples/hello-lab -p 8085:8085 -p 3000:3000 --name hello-lab`. See the [repository README](../../README.md) to package your own lab the same way.

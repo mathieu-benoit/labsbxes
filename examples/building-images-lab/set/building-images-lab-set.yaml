@@ -1,0 +1,37 @@
+# syntax=docker/sandbox-kit:3
+#
+# The "Building Container Images: Best Practices" lab as one kit reference: a kit set that merges the `shell`
+# workload with the Labspace kit and this lab's content kit. It publishes as a
+# workload, so learners run it directly, without `shell` or any --kit:
+#
+#   sbx run ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set:<version> -p 8085:8085 -p 5050:5050 --name building-images-lab
+#
+# The members must be published registry references (local paths are refused).
+# The build records each member's digest, so a published set never changes.
+# publish-kits builds it after the kits it lists, and rewrites the member tags
+# to the ones that run publishes (:edge on main) or, on a pull request, to the
+# last release (:latest).
+#
+# In its own folder, so that `sbx run shell --kit ./examples/building-images-lab` keeps finding
+# the content kit's descriptor alone.
+schemaVersion: "3"
+kind: set
+
+displayName: "Building Container Images: Best Practices (Labspace on Docker Sandboxes)"
+description: >-
+  The "Building Container Images: Best Practices" lab, ready to run: the `shell` sandbox (bash and a Docker engine), the Labspace kit (interface and IDE) and the lab's content kit, merged into one workload.
+
+version: "0.1.11"
+
+# Becomes the org.opencontainers.image.source annotation, which is what links
+# the published GHCR package to this repository.
+sourceUrl: https://github.com/mathieu-benoit/labsbxes
+
+kits:
+  # The workload: a plain shell sandbox with a Docker engine. The only workload
+  # in the set (a set may have at most one).
+  - ref: docker.io/sbx/shell:latest
+  # The Labspace interface and VS Code (code-server). Provides `labspace`.
+  - ref: ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11
+  # This lab's content, which requires the Labspace kit.
+  - ref: ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.11

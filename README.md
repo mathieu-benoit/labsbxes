@@ -4,15 +4,17 @@ Run a [Labspace](https://github.com/dockersamples/labspace-infra) (instructions 
 
 ## Kits
 
-This repository publishes three kits to GitHub Container Registry. Each has its own README with its run command and the ports to pin:
+This repository publishes three kits, and a kit set per lab, to GitHub Container Registry. Each kit has its own README with its run commands and the ports to pin:
 
 | Kit | Package | README |
 |---|---|---|
 | Labspace runtime: the interface, VS Code and a private Docker engine | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/README.md](kit/README.md) |
 | Hello Labspace: a minimal lab (content kit) | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/README.md](examples/hello-lab/README.md) |
 | Building Container Images: Best Practices (content kit) | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab` | [examples/building-images-lab/README.md](examples/building-images-lab/README.md) |
+| Hello Labspace, ready to run (kit set) | `ghcr.io/mathieu-benoit/labsbxes/hello-lab-set` | [examples/hello-lab/README.md](examples/hello-lab/README.md) |
+| Building Container Images: Best Practices, ready to run (kit set) | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set` | [examples/building-images-lab/README.md](examples/building-images-lab/README.md) |
 
-A content kit always runs with the Labspace kit. Commands for all three are in [Published kits](#published-kits-github-actions).
+A content kit always runs with the Labspace kit. A lab's kit set merges the two with the `shell` sandbox, so it runs on its own, with no `shell` and no `--kit`. Commands for all of them are in [Published kits](#published-kits-github-actions).
 
 ## Run from source
 
@@ -102,34 +104,30 @@ When the content comes from a kit, the instructions are read from the kit, and `
 
 The resolver enforces the pairing: the content kit alone fails with `requires "labspace >= 0.1.0" but nothing in the set provides it`, and two content kits conflict because both provide `labspace-content`.
 
-### Giving the pair a single reference
+### Giving the lab a single reference
 
-A `kind: set` merges the two into one published kit. Publish both kits to a registry, then publish the set that lists them (set members must be registry references; local paths are refused):
+A `kind: set` merges kits into one published kit. Each example lab has one, in its own `set/` folder so that `--kit ./examples/<lab>` still finds the content kit's descriptor alone: [hello-lab-set.yaml](examples/hello-lab/set/hello-lab-set.yaml) and [building-images-lab-set.yaml](examples/building-images-lab/set/building-images-lab-set.yaml). Each lists three members, which must be registry references (local paths are refused):
 
 ```yaml
-# hello-lab-set.yaml
-# syntax=docker/sandbox-kit:3
-schemaVersion: "3"
-kind: set
-displayName: Hello Labspace (ready to run)
-version: "0.1.11"
 kits:
-  - ref: docker.io/<you>/labspace:0.1.11
-  - ref: docker.io/<you>/hello-lab:0.1.11
+  - ref: docker.io/sbx/shell:latest                              # the workload
+  - ref: ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11         # provides labspace
+  - ref: ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.11        # requires it
 ```
+
+Because the set holds the `shell` workload, it publishes as a **workload**: learners run the set itself, with no `shell` and no `--kit`. The build records each member's digest, so a published set never changes, `shell` included. It can't be layered onto another agent, since a sandbox has a single workload; for that, pass the kits with `--kit` as above.
 
 ```bash
-docker buildx build --builder kit-builder kit -f kit/labspace.yaml -t docker.io/<you>/labspace:0.1.11 --push
-docker buildx build --builder kit-builder examples/hello-lab -f examples/hello-lab/hello-lab.yaml -t docker.io/<you>/hello-lab:0.1.11 --push
-docker buildx build --builder kit-builder . -f hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.11 --push
-
-# learners:
-sbx run shell --kit docker.io/<you>/hello-lab-set:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab-set:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
-`kit-builder` is a `docker-container` builder (`docker buildx create --name kit-builder --driver docker-container --bootstrap`), as in the [spec README](https://github.com/docker/sandbox-kit-spec#building-a-kit).
+To build one yourself, publish its members first, then the set:
 
-The published set is one ordinary mixin that pins both members by digest and carries the merged capabilities and hooks. By default `sbx` only installs kits from `docker.io/` and `dhi.io/` (`kit.allowedSources`).
+```bash
+docker buildx build --builder kit-builder examples/hello-lab/set -f examples/hello-lab/set/hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.11 --push
+```
+
+`kit-builder` is a `docker-container` builder (`docker buildx create --name kit-builder --driver docker-container --bootstrap`), as in the [spec README](https://github.com/docker/sandbox-kit-spec#building-a-kit). `sbx run ./examples/hello-lab/set` also runs a set from source: the members are still pulled from the registry.
 
 ## Published kits (GitHub Actions)
 
@@ -140,6 +138,8 @@ The published set is one ordinary mixin that pins both members by digest and car
 | Labspace runtime | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/](kit) |
 | `hello-lab` content | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/](examples/hello-lab) |
 | `building-images-lab` content | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab` | [examples/building-images-lab/](examples/building-images-lab) |
+| `hello-lab` kit set | `ghcr.io/mathieu-benoit/labsbxes/hello-lab-set` | [examples/hello-lab/set/](examples/hello-lab/set) |
+| `building-images-lab` kit set | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set` | [examples/building-images-lab/set/](examples/building-images-lab/set) |
 
 Run them from a **dedicated, empty folder**. `sbx run` mounts the current folder into the sandbox as its workspace, read-write. Started from your home directory, that would hand the sandbox your SSH keys, cloud and registry credentials, shell history and every other project, which defeats the point of a sandbox. Give it only what the lab needs: with a content kit the lab doesn't use the workspace at all, so an empty folder is enough. (`sbx` also blocks the home directory outright, with `mount "/Users/<you>" overlaps Sandboxes configuration, state or credentials`.)
 
@@ -167,17 +167,27 @@ sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.i
 sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.11 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
+Or run either lab from its kit set, one reference with the same ports:
+
+```bash
+sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab-set:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
+```
+
+```bash
+sbx run ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set:0.1.11 -p 8085:8085 -p 5050:5050 --name building-images-lab
+```
+
 Then open the host port `sbx port ls <name>` lists for sandbox port 3030 (for example `sbx port ls hello-lab`). That host port is picked by `sbx` and changes at every start; add `-p 3030:3030` to any of these commands to open the interface at http://localhost:3030 instead.
 
 | Event | What it does |
 |---|---|
-| Pull request | Builds all kits to a local OCI layout and validates them with `kit-tck`; pushes nothing. |
+| Pull request | Builds all kits to a local OCI layout and validates them with `kit-tck`; pushes nothing. The kit sets are built the same way, against the last release of their members (`:latest`). |
 | Push of a `v*` tag | Publishes `:<version from the kit's descriptor>` and `:latest`. A version that already exists is skipped, so a published version is immutable. |
-| Manual run (**Actions → publish-kits → Run workflow**) on `main` | Publishes `:edge` and `:sha-<short>`. On any other branch it only builds. |
+| Manual run (**Actions → publish-kits → Run workflow**) on `main` | Publishes `:edge` and `:sha-<short>` (the kit sets then list their members at `:edge`). On any other branch it only builds. |
 
-Commits to `main` don't publish anything on their own.
+The kit sets are built after the kits, since their members must already be published. Commits to `main` don't publish anything on their own.
 
-The kits are versioned **in lockstep**. To release, bump `version:` to the same value in every descriptor (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`, `examples/building-images-lab/building-images-lab.yaml`), merge, then push the matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The workflow's first job fails the run if the versions differ, or if the tag doesn't name them (`v0.2.0` must mean `0.2.0`). The `v` is only on the git tag; the published image tags have none (`:0.2.0`), as the kit spec requires.
+The kits are versioned **in lockstep**. To release, bump `version:` to the same value in every descriptor (`kit/labspace.yaml`, `examples/hello-lab/hello-lab.yaml`, `examples/building-images-lab/building-images-lab.yaml`, and the two `set/*-set.yaml`, whose members are listed at that version too), merge, then push the matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The workflow's first job fails the run if the versions differ, if a set lists one of this repository's kits at another version, or if the tag doesn't name them (`v0.2.0` must mean `0.2.0`). The `v` is only on the git tag; the published image tags have none (`:0.2.0`), as the kit spec requires.
 
 The workflow runs `kit-tck validate` (the specification's conformance checker, pinned and checksum-verified) every time: on pull requests against the built OCI layout, and after each publish against the artifact that actually reached the registry. The descriptors' `sourceUrl` becomes the `org.opencontainers.image.source` annotation, which is what links the packages to this repository.
 
@@ -229,7 +239,9 @@ kit/
     opt/labspace/bin/    # labspace-init.sh, labspace-stage.sh, labspace-ide.sh, labspace-ui.sh
     home/agent/.local/share/code-server/User/settings.json
 examples/hello-lab/      # a tiny lab: a content repo, and (hello-lab.yaml/.dockerfile) a content kit
+  set/hello-lab-set.yaml #   its kit set: shell + the Labspace kit + the content kit
 examples/building-images-lab/ # dockersamples/labspace-building-images as a content kit (Quote App on 5050)
+  set/building-images-lab-set.yaml
 site/                    # the GitHub Pages landing page: kits.json, build.sh, index.html, app.js, style.css, pages/
 ```
 
@@ -285,7 +297,7 @@ Tested with sbx 0.53 on Windows, using `examples/hello-lab`:
 | Workspace content still wins over the other two sources | Pass |
 | Before the built-in lab: no content meant a failed startup hook, nothing listening and a blank browser | (the reason it exists) |
 | `kind: set` built from both kits and pushed to a local registry: merged descriptor is a `mixin`, provides the union, members pinned by digest, 1 install + 3 startup hooks | Pass (descriptor inspected) |
-| **Running** the lab from the set reference | **Not tested**: the sandbox runtime refused `localhost:5000/...` because `kit.allowedSources` only allows `docker.io/` and `dhi.io/` |
+| Each lab's kit set (`shell` + Labspace kit + content kit) built for amd64 and arm64, and run with `sbx run ./examples/<lab>/set`: one workload, lab served, IDE and Run buttons work, Docker works (sbx 0.54) | Pass |
 | Two content kits composed together is refused; content kit baked into the set while the workspace has its own `labspace/` | Not tested |
 | macOS / Linux hosts, `--cloud` sandboxes, content bigger than the sample | Not tested |
 

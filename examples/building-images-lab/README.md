@@ -24,6 +24,12 @@ mkdir -p ~/sbx-lab && cd ~/sbx-lab
 sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.11 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
+Or, as a single reference, its kit set (`ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set`), which merges the `shell` sandbox, the Labspace kit and this kit into one workload:
+
+```bash
+sbx run ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set:0.1.11 -p 8085:8085 -p 5050:5050 --name building-images-lab
+```
+
 Then run `sbx port ls building-images-lab` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).
 
 | Pin | Why |
@@ -51,5 +57,6 @@ Your edits in the IDE stay in the sandbox and survive `sbx stop` and `sbx run --
 - [labspace/](labspace) and [project/](project): copied as they are from [dockersamples/labspace-building-images](https://github.com/dockersamples/labspace-building-images)
 - [building-images-lab.yaml](building-images-lab.yaml): the descriptor, a mixin that `requires` the Labspace kit, `provides` `labspace-content` and declares port 5050
 - [building-images-lab.dockerfile](building-images-lab.dockerfile): copies the two folders to `/opt/labspace/content`
+- [set/building-images-lab-set.yaml](set/building-images-lab-set.yaml): the kit set, `shell` + the Labspace kit + this kit, published as `building-images-lab-set`
 
 From a clone of the repository, run it from source with `sbx run shell --kit ./kit --kit ./examples/building-images-lab -p 8085:8085 -p 5050:5050 --name building-images-lab`.
