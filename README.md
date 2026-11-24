@@ -131,7 +131,7 @@ docker buildx build --builder kit-builder examples/hello-lab/set -f examples/hel
 
 ## Published kits (GitHub Actions)
 
-[.github/workflows/publish-kits.yaml](.github/workflows/publish-kits.yaml) builds the kits for `linux/amd64` and `linux/arm64` and publishes them to this repository's container registry:
+[.github/workflows/publish-kits.yaml](.github/workflows/publish-kits.yaml) builds the kits for `linux/amd64` and `linux/arm64` and publishes them to this repository's container registry. Each kit and kit set is built by the same reusable workflow, [.github/workflows/build-kit.yaml](.github/workflows/build-kit.yaml):
 
 | Kit | Reference | Source |
 |---|---|---|

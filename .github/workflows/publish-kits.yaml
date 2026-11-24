@@ -1,7 +1,9 @@
 name: publish-kits
 
 # Builds the kits and publishes them to this repository's container registry
-# (GHCR), as ghcr.io/<owner>/<repo>/<kit>:
+# (GHCR), as ghcr.io/<owner>/<repo>/<kit>. Each kit and kit set is built by
+# build-kit.yaml (a reusable workflow); this file decides what is built, in
+# which order, and checks the versions first.
 #
 #   labspace             kit/                            the Labspace runtime (a mixin for the `shell` agent)
 #   hello-lab            examples/hello-lab/             a lab's content, as a kit
@@ -38,6 +40,7 @@ on:
       - "examples/hello-lab/**"
       - "examples/building-images-lab/**"
       - ".github/workflows/publish-kits.yaml"
+      - ".github/workflows/build-kit.yaml"
   push:
     tags: ["v*"]
   workflow_dispatch:
@@ -49,12 +52,6 @@ permissions:
 concurrency:
   group: publish-kits-${{ github.ref }}
   cancel-in-progress: false
-
-env:
-  REGISTRY: ghcr.io
-  # kit-tck, the Sandbox Kit specification's conformance checker. Pinned, and
-  # verified against the release's checksums.txt before it runs.
-  KIT_TCK_VERSION: 3.0.0-m.12
 
 jobs:
   versions:
@@ -73,7 +70,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Same top-level `version:` extraction as the kits job.
+          # Same top-level `version:` extraction as build-kit.yaml.
           read_version() {
             sed -n 's/^version:[[:space:]]*"\{0,1\}\([^"[:space:]#]*\).*/\1/p' "$1" | head -n 1
           }
@@ -90,7 +87,7 @@ jobs:
           fi
 
           # The kit sets: same version, and every member from this repository
-          # listed at it (the sets job retags them on non-release runs).
+          # listed at it (build-kit.yaml retags them on non-release runs).
           for set in examples/hello-lab/set/hello-lab-set.yaml examples/building-images-lab/set/building-images-lab-set.yaml; do
             set_version="$(read_version "$set")"
             echo "$(basename "$set" .yaml): ${set_version:-<none>}"
@@ -118,10 +115,6 @@ jobs:
   kits:
     name: ${{ matrix.name }}
     needs: versions
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write # push to ghcr.io/<owner>/<repo>/*
     strategy:
       fail-fast: false
       matrix:
@@ -135,169 +128,20 @@ jobs:
           - name: building-images-lab
             context: examples/building-images-lab
             descriptor: examples/building-images-lab/building-images-lab.yaml
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      # Decide what this run does and what to call the result.
-      - name: Resolve image name and tags
-        id: meta
-        env:
-          NAME: ${{ matrix.name }}
-          DESCRIPTOR: ${{ matrix.descriptor }}
-          EVENT: ${{ github.event_name }}
-          REF: ${{ github.ref }}
-        run: |
-          set -euo pipefail
-
-          # The descriptor is the version authority (top-level `version:` only;
-          # args are indented).
-          version="$(sed -n 's/^version:[[:space:]]*"\{0,1\}\([^"[:space:]#]*\).*/\1/p' "$DESCRIPTOR" | head -n 1)"
-          if [ -z "$version" ]; then
-            echo "::error file=$DESCRIPTOR::no top-level version: found"
-            exit 1
-          fi
-
-          image="${REGISTRY}/${GITHUB_REPOSITORY,,}/${NAME}"
-
-          publish=false
-          tags="${image}:ci-build"
-          primary="${image}:ci-build"
-          if [ "$EVENT" != "pull_request" ]; then
-            if [[ "$REF" == refs/tags/v* ]]; then
-              publish=true
-              tags="${image}:${version},${image}:latest"
-              primary="${image}:${version}"
-            elif [ "$REF" = "refs/heads/main" ]; then
-              publish=true
-              tags="${image}:edge,${image}:sha-${GITHUB_SHA::7}"
-              primary="${image}:edge"
-            fi
-          fi
-
-          {
-            echo "image=$image"
-            echo "version=$version"
-            echo "publish=$publish"
-            echo "tags=$tags"
-            echo "primary=$primary"
-          } >> "$GITHUB_OUTPUT"
-
-      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
-        with:
-          platforms: arm64
-
-      # The default docker-container driver is what a Kit needs: it keeps the
-      # manifest annotations that carry the descriptor.
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-
-      - name: Log in to ghcr.io
-        if: steps.meta.outputs.publish == 'true'
-        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Releases only: keep published versions immutable.
-      - name: Skip a version that is already published
-        id: exists
-        if: steps.meta.outputs.publish == 'true' && startsWith(github.ref, 'refs/tags/v')
-        env:
-          PRIMARY: ${{ steps.meta.outputs.primary }}
-        run: |
-          if docker buildx imagetools inspect "$PRIMARY" > /dev/null 2>&1; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::$PRIMARY already exists; not republishing. Bump version: in the descriptor to release a new one."
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      # The `# syntax=docker/sandbox-kit:3` line of the descriptor makes BuildKit
-      # run the Kit frontend, which validates the descriptor and attaches it to
-      # the image. mode=min is what the spec asks for with multi-platform builds
-      # (the descriptor ends up on every platform manifest and on the index).
-      - name: Build${{ steps.meta.outputs.publish == 'true' && ' and push' || '' }}
-        if: steps.exists.outputs.skip != 'true'
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.descriptor }}
-          platforms: linux/amd64,linux/arm64
-          provenance: mode=min
-          sbom: false
-          push: ${{ steps.meta.outputs.publish == 'true' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          # When nothing is pushed, export the kit as an OCI layout (a directory)
-          # so kit-tck can judge exactly what would have been published. The
-          # layout names the image by its tag, ci-build.
-          outputs: ${{ steps.meta.outputs.publish != 'true' && format('type=oci,dest={0}/kit-layout,tar=false', runner.temp) || '' }}
-
-      # kit-tck is the spec's conformance checker. On a pull request it reads the
-      # OCI layout above; after a publish it reads the registry, because the
-      # frontend's own checks cannot see metadata an exporter or a registry drops.
-      - name: Install kit-tck
-        if: steps.exists.outputs.skip != 'true'
-        run: |
-          set -euo pipefail
-          base="https://github.com/docker/sandbox-kit-spec/releases/download/v${KIT_TCK_VERSION}"
-          archive="kit-tck_${KIT_TCK_VERSION}_linux_amd64.tar.gz"
-          mkdir -p "$RUNNER_TEMP/kit-tck"
-          cd "$RUNNER_TEMP/kit-tck"
-          curl -fsSL -O "$base/$archive"
-          curl -fsSL -O "$base/checksums.txt"
-          grep " ${archive}\$" checksums.txt | sha256sum -c -
-          tar -xzf "$archive"
-          echo "$RUNNER_TEMP/kit-tck" >> "$GITHUB_PATH"
-
-      - name: Validate the kit with kit-tck
-        if: steps.exists.outputs.skip != 'true'
-        env:
-          PUBLISH: ${{ steps.meta.outputs.publish }}
-          PRIMARY: ${{ steps.meta.outputs.primary }}
-        run: |
-          if [ "$PUBLISH" = "true" ]; then
-            kit-tck validate "$PRIMARY"
-          else
-            kit-tck validate --layout "$RUNNER_TEMP/kit-layout" ci-build
-          fi
-
-      - name: Summary
-        if: always()
-        env:
-          PUBLISH: ${{ steps.meta.outputs.publish }}
-          SKIP: ${{ steps.exists.outputs.skip }}
-          TAGS: ${{ steps.meta.outputs.tags }}
-          NAME: ${{ matrix.name }}
-          VERSION: ${{ steps.meta.outputs.version }}
-        run: |
-          {
-            echo "### ${NAME} ${VERSION}"
-            if [ "$PUBLISH" != "true" ]; then
-              echo "Built and checked with kit-tck from an OCI layout (nothing pushed)."
-            elif [ "$SKIP" = "true" ]; then
-              echo "Skipped: this version is already published."
-            else
-              echo "Published:"
-              echo
-              echo "$TAGS" | tr ',' '\n' | while read -r tag; do
-                echo "- \`$tag\`"
-              done
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # A kit set lists published kits, so it builds after the kits job. Its
-  # members from this repository are listed at the version being released; on
-  # runs that publish no version, they are pointed at kits that exist instead.
-  sets:
-    name: ${{ matrix.name }}
-    needs: kits
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/build-kit.yaml
     permissions:
       contents: read
       packages: write # push to ghcr.io/<owner>/<repo>/*
+    with:
+      name: ${{ matrix.name }}
+      context: ${{ matrix.context }}
+      descriptor: ${{ matrix.descriptor }}
+
+  # A kit set lists published kits, so it builds after them: on a release, the
+  # set pins the versions the kits job just published.
+  sets:
+    name: ${{ matrix.name }}
+    needs: kits
     strategy:
       fail-fast: false
       matrix:
@@ -308,162 +152,12 @@ jobs:
           - name: building-images-lab-set
             context: examples/building-images-lab/set
             descriptor: examples/building-images-lab/set/building-images-lab-set.yaml
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Resolve image name and tags
-        id: meta
-        env:
-          NAME: ${{ matrix.name }}
-          DESCRIPTOR: ${{ matrix.descriptor }}
-          EVENT: ${{ github.event_name }}
-          REF: ${{ github.ref }}
-        run: |
-          set -euo pipefail
-
-          version="$(sed -n 's/^version:[[:space:]]*"\{0,1\}\([^"[:space:]#]*\).*/\1/p' "$DESCRIPTOR" | head -n 1)"
-          if [ -z "$version" ]; then
-            echo "::error file=$DESCRIPTOR::no top-level version: found"
-            exit 1
-          fi
-
-          image="${REGISTRY}/${GITHUB_REPOSITORY,,}/${NAME}"
-
-          # members: the tag this repository's kits are used at. A release uses
-          # the descriptor as is; a manual run on main uses the :edge the kits
-          # job just pushed; anything else (pull requests included) uses the
-          # last release, since the new version isn't published yet.
-          publish=false
-          members=latest
-          tags="${image}:ci-build"
-          primary="${image}:ci-build"
-          if [ "$EVENT" != "pull_request" ]; then
-            if [[ "$REF" == refs/tags/v* ]]; then
-              publish=true
-              members="$version"
-              tags="${image}:${version},${image}:latest"
-              primary="${image}:${version}"
-            elif [ "$REF" = "refs/heads/main" ]; then
-              publish=true
-              members=edge
-              tags="${image}:edge,${image}:sha-${GITHUB_SHA::7}"
-              primary="${image}:edge"
-            fi
-          fi
-
-          {
-            echo "version=$version"
-            echo "members=$members"
-            echo "publish=$publish"
-            echo "tags=$tags"
-            echo "primary=$primary"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Point the members at the kits this run uses
-        if: steps.meta.outputs.members != steps.meta.outputs.version
-        env:
-          DESCRIPTOR: ${{ matrix.descriptor }}
-          VERSION: ${{ steps.meta.outputs.version }}
-          MEMBERS: ${{ steps.meta.outputs.members }}
-        run: |
-          set -euo pipefail
-          sed -i "s#\(ghcr\.io/mathieu-benoit/labsbxes/[a-z-]*\):${VERSION}\$#\1:${MEMBERS}#" "$DESCRIPTOR"
-          grep -n 'ref:' "$DESCRIPTOR"
-
-      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
-        with:
-          platforms: arm64
-
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-
-      - name: Log in to ghcr.io
-        if: steps.meta.outputs.publish == 'true'
-        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Skip a version that is already published
-        id: exists
-        if: steps.meta.outputs.publish == 'true' && startsWith(github.ref, 'refs/tags/v')
-        env:
-          PRIMARY: ${{ steps.meta.outputs.primary }}
-        run: |
-          if docker buildx imagetools inspect "$PRIMARY" > /dev/null 2>&1; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::$PRIMARY already exists; not republishing. Bump version: in the descriptor to release a new one."
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      # The Kit frontend resolves every member, records its digest and merges
-      # the descriptors; the set holds `shell`, so the result is a workload.
-      - name: Build${{ steps.meta.outputs.publish == 'true' && ' and push' || '' }}
-        if: steps.exists.outputs.skip != 'true'
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.descriptor }}
-          platforms: linux/amd64,linux/arm64
-          provenance: mode=min
-          sbom: false
-          push: ${{ steps.meta.outputs.publish == 'true' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          outputs: ${{ steps.meta.outputs.publish != 'true' && format('type=oci,dest={0}/kit-layout,tar=false', runner.temp) || '' }}
-
-      - name: Install kit-tck
-        if: steps.exists.outputs.skip != 'true'
-        run: |
-          set -euo pipefail
-          base="https://github.com/docker/sandbox-kit-spec/releases/download/v${KIT_TCK_VERSION}"
-          archive="kit-tck_${KIT_TCK_VERSION}_linux_amd64.tar.gz"
-          mkdir -p "$RUNNER_TEMP/kit-tck"
-          cd "$RUNNER_TEMP/kit-tck"
-          curl -fsSL -O "$base/$archive"
-          curl -fsSL -O "$base/checksums.txt"
-          grep " ${archive}\$" checksums.txt | sha256sum -c -
-          tar -xzf "$archive"
-          echo "$RUNNER_TEMP/kit-tck" >> "$GITHUB_PATH"
-
-      - name: Validate the set with kit-tck
-        if: steps.exists.outputs.skip != 'true'
-        env:
-          PUBLISH: ${{ steps.meta.outputs.publish }}
-          PRIMARY: ${{ steps.meta.outputs.primary }}
-        run: |
-          if [ "$PUBLISH" = "true" ]; then
-            kit-tck validate "$PRIMARY"
-          else
-            kit-tck validate --layout "$RUNNER_TEMP/kit-layout" ci-build
-          fi
-
-      - name: Summary
-        if: always()
-        env:
-          PUBLISH: ${{ steps.meta.outputs.publish }}
-          SKIP: ${{ steps.exists.outputs.skip }}
-          TAGS: ${{ steps.meta.outputs.tags }}
-          NAME: ${{ matrix.name }}
-          VERSION: ${{ steps.meta.outputs.version }}
-          MEMBERS: ${{ steps.meta.outputs.members }}
-        run: |
-          {
-            echo "### ${NAME} ${VERSION}"
-            echo "This repository's kits at \`:${MEMBERS}\`."
-            echo
-            if [ "$PUBLISH" != "true" ]; then
-              echo "Built and checked with kit-tck from an OCI layout (nothing pushed)."
-            elif [ "$SKIP" = "true" ]; then
-              echo "Skipped: this version is already published."
-            else
-              echo "Published:"
-              echo
-              echo "$TAGS" | tr ',' '\n' | while read -r tag; do
-                echo "- \`$tag\`"
-              done
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+    uses: ./.github/workflows/build-kit.yaml
+    permissions:
+      contents: read
+      packages: write # push to ghcr.io/<owner>/<repo>/*
+    with:
+      name: ${{ matrix.name }}
+      context: ${{ matrix.context }}
+      descriptor: ${{ matrix.descriptor }}
+      set: true
