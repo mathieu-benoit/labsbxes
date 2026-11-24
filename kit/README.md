@@ -33,7 +33,7 @@ sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 -p 8085:8085
 With a lab packaged as a content kit:
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 Then run `sbx port ls <name>` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).

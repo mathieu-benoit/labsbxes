@@ -9,9 +9,9 @@ This repository publishes three kits, and a kit set per lab, to GitHub Container
 | Kit | Package | README |
 |---|---|---|
 | Labspace runtime: the interface, VS Code and a private Docker engine | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/README.md](kit/README.md) |
-| Hello Labspace: a minimal lab (content kit) | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/README.md](examples/hello-lab/README.md) |
+| Hello Labspace: a minimal lab (content kit) | `ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin` | [examples/hello-lab/README.md](examples/hello-lab/README.md) |
 | Building Container Images: Best Practices (content kit) | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab` | [examples/building-images-lab/README.md](examples/building-images-lab/README.md) |
-| Hello Labspace, ready to run (kit set) | `ghcr.io/mathieu-benoit/labsbxes/hello-lab-set` | [examples/hello-lab/README.md](examples/hello-lab/README.md) |
+| Hello Labspace, ready to run (kit set) | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/README.md](examples/hello-lab/README.md) |
 | Building Container Images: Best Practices, ready to run (kit set) | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set` | [examples/building-images-lab/README.md](examples/building-images-lab/README.md) |
 
 A content kit always runs with the Labspace kit. A lab's kit set merges the two with the `shell` sandbox, so it runs on its own, with no `shell` and no `--kit`. Commands for all of them are in [Published kits](#published-kits-github-actions).
@@ -112,19 +112,19 @@ A `kind: set` merges kits into one published kit. Each example lab has one, in i
 kits:
   - ref: docker.io/sbx/shell:latest                              # the workload
   - ref: ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11         # provides labspace
-  - ref: ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.11        # requires it
+  - ref: ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin:0.1.11        # requires it
 ```
 
 Because the set holds the `shell` workload, it publishes as a **workload**: learners run the set itself, with no `shell` and no `--kit`. The build records each member's digest, so a published set never changes, `shell` included. It can't be layered onto another agent, since a sandbox has a single workload; for that, pass the kits with `--kit` as above.
 
 ```bash
-sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab-set:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 To build one yourself, publish its members first, then the set:
 
 ```bash
-docker buildx build --builder kit-builder examples/hello-lab/set -f examples/hello-lab/set/hello-lab-set.yaml -t docker.io/<you>/hello-lab-set:0.1.11 --push
+docker buildx build --builder kit-builder examples/hello-lab/set -f examples/hello-lab/set/hello-lab-set.yaml -t docker.io/<you>/hello-lab:0.1.11 --push
 ```
 
 `kit-builder` is a `docker-container` builder (`docker buildx create --name kit-builder --driver docker-container --bootstrap`), as in the [spec README](https://github.com/docker/sandbox-kit-spec#building-a-kit). `sbx run ./examples/hello-lab/set` also runs a set from source: the members are still pulled from the registry.
@@ -136,9 +136,9 @@ docker buildx build --builder kit-builder examples/hello-lab/set -f examples/hel
 | Kit | Reference | Source |
 |---|---|---|
 | Labspace runtime | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/](kit) |
-| `hello-lab` content | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/](examples/hello-lab) |
+| `hello-lab` content | `ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin` | [examples/hello-lab/](examples/hello-lab) |
 | `building-images-lab` content | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab` | [examples/building-images-lab/](examples/building-images-lab) |
-| `hello-lab` kit set | `ghcr.io/mathieu-benoit/labsbxes/hello-lab-set` | [examples/hello-lab/set/](examples/hello-lab/set) |
+| `hello-lab` kit set | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/set/](examples/hello-lab/set) |
 | `building-images-lab` kit set | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set` | [examples/building-images-lab/set/](examples/building-images-lab/set) |
 
 Run them from a **dedicated, empty folder**. `sbx run` mounts the current folder into the sandbox as its workspace, read-write. Started from your home directory, that would hand the sandbox your SSH keys, cloud and registry credentials, shell history and every other project, which defeats the point of a sandbox. Give it only what the lab needs: with a content kit the lab doesn't use the workspace at all, so an empty folder is enough. (`sbx` also blocks the home directory outright, with `mount "/Users/<you>" overlaps Sandboxes configuration, state or credentials`.)
@@ -158,7 +158,7 @@ sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 -p 8085:8085
 `hello-lab` (pin 3000 for its tab link):
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 `building-images-lab` (pin 5050 for its Quote App tab):
@@ -170,7 +170,7 @@ sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.i
 Or run either lab from its kit set, one reference with the same ports:
 
 ```bash
-sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab-set:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.11 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 ```bash

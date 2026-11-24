@@ -5,7 +5,8 @@ name: build-kit
 # Called by publish-kits.yaml, once per kit and once per kit set.
 #
 #   pull request          nothing pushed: built to a local OCI layout and
-#                         checked with kit-tck
+#                         checked with kit-tck (a kit set waits for its
+#                         members: skipped while one isn't published yet)
 #   push of a v* tag      :<version from the descriptor> and :latest, unless
 #                         that version is already published (then skipped)
 #   manual run on main    :edge and :sha-<short> (elsewhere: build only)
@@ -135,19 +136,45 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Releases only: keep published versions immutable.
-      - name: Skip a version that is already published
+      # Two reasons not to build:
+      # - a release whose version is already published (versions are immutable);
+      # - outside a release, a kit set whose member from this repository isn't
+      #   published at that tag yet, as happens to a kit's first release under a
+      #   new name: the set builds once the release publishes it.
+      - name: Skip what is already published, or can't be built yet
         id: exists
-        if: steps.meta.outputs.publish == 'true' && startsWith(github.ref, 'refs/tags/v')
         env:
+          PUBLISH: ${{ steps.meta.outputs.publish }}
           PRIMARY: ${{ steps.meta.outputs.primary }}
+          SET: ${{ inputs.set }}
+          DESCRIPTOR: ${{ inputs.descriptor }}
+          MEMBERS: ${{ steps.meta.outputs.members }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          REF: ${{ github.ref }}
         run: |
-          if docker buildx imagetools inspect "$PRIMARY" > /dev/null 2>&1; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::$PRIMARY already exists; not republishing. Bump version: in the descriptor to release a new one."
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          skip=false
+          reason=""
+          if [ "$PUBLISH" = "true" ] && [[ "$REF" == refs/tags/v* ]]; then
+            if docker buildx imagetools inspect "$PRIMARY" > /dev/null 2>&1; then
+              skip=true
+              reason="Skipped: this version is already published."
+              echo "::notice::$PRIMARY already exists; not republishing. Bump version: in the descriptor to release a new one."
+            fi
+          elif [ "$SET" = "true" ] && [ "$MEMBERS" != "$VERSION" ]; then
+            prefix="${REGISTRY}/${GITHUB_REPOSITORY,,}/"
+            for ref in $(sed -n 's/^[[:space:]]*- ref:[[:space:]]*\([^[:space:]#]*\).*/\1/p' "$DESCRIPTOR" | grep "^${prefix}" || true); do
+              if ! docker buildx imagetools inspect "$ref" > /dev/null 2>&1; then
+                skip=true
+                reason="Skipped: member \`$ref\` isn't published yet; the set builds once a release publishes it."
+                echo "::notice::$ref isn't published yet, so this set can't be built on this run. It builds on the release that publishes it."
+              fi
+            done
           fi
+          {
+            echo "skip=$skip"
+            echo "reason=$reason"
+          } >> "$GITHUB_OUTPUT"
 
       # The `# syntax=docker/sandbox-kit:3` line of the descriptor makes BuildKit
       # run the Kit frontend, which validates the descriptor and attaches it to
@@ -204,6 +231,7 @@ jobs:
         env:
           PUBLISH: ${{ steps.meta.outputs.publish }}
           SKIP: ${{ steps.exists.outputs.skip }}
+          REASON: ${{ steps.exists.outputs.reason }}
           TAGS: ${{ steps.meta.outputs.tags }}
           NAME: ${{ inputs.name }}
           VERSION: ${{ steps.meta.outputs.version }}
@@ -216,10 +244,10 @@ jobs:
               echo "Kit set; this repository's kits at \`:${MEMBERS}\`."
               echo
             fi
-            if [ "$PUBLISH" != "true" ]; then
+            if [ "$SKIP" = "true" ]; then
+              echo "$REASON"
+            elif [ "$PUBLISH" != "true" ]; then
               echo "Built and checked with kit-tck from an OCI layout (nothing pushed)."
-            elif [ "$SKIP" = "true" ]; then
-              echo "Skipped: this version is already published."
             else
               echo "Published:"
               echo
