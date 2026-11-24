@@ -15,7 +15,7 @@ description: >-
   multi-stage builds, base images and build secrets, to be run by the Labspace
   kit.
 
-version: "0.1.11"
+version: "0.1.12"
 
 # Becomes the org.opencontainers.image.source annotation, which is what links
 # a published GHCR package to this repository.
@@ -27,7 +27,7 @@ requires: ["labspace >= 0.1.0"]
 
 # One lab per sandbox: a second content kit provides the same name, and the
 # runtime refuses the composition.
-provides: ["labspace-content@0.1.11"]
+provides: ["labspace-content@0.1.12"]
 
 capabilities:
   # The lab runs its Quote App on port 5050 (docker run -p 5050:5050) and opens
