@@ -7,13 +7,13 @@ name: publish-kits
 #
 #   labspace             kit/                            the Labspace runtime (a mixin for the `shell` agent)
 #   hello-lab-mixin      examples/hello-lab/             a lab's content, as a kit
-#   building-images-lab  examples/building-images-lab/   a lab's content, as a kit
+#   building-images-lab-mixin examples/building-images-lab/ a lab's content, as a kit
 #
 # and, once those are built, a kit set per lab that merges the `shell` workload,
 # the Labspace kit and the lab's content kit into one reference:
 #
 #   hello-lab                examples/hello-lab/set/
-#   building-images-lab-set  examples/building-images-lab/set/
+#   building-images-lab      examples/building-images-lab/set/
 #
 # What gets pushed, by event:
 #
@@ -125,7 +125,7 @@ jobs:
           - name: hello-lab-mixin
             context: examples/hello-lab
             descriptor: examples/hello-lab/hello-lab.yaml
-          - name: building-images-lab
+          - name: building-images-lab-mixin
             context: examples/building-images-lab
             descriptor: examples/building-images-lab/building-images-lab.yaml
     uses: ./.github/workflows/build-kit.yaml
@@ -149,7 +149,7 @@ jobs:
           - name: hello-lab
             context: examples/hello-lab/set
             descriptor: examples/hello-lab/set/hello-lab-set.yaml
-          - name: building-images-lab-set
+          - name: building-images-lab
             context: examples/building-images-lab/set
             descriptor: examples/building-images-lab/set/building-images-lab-set.yaml
     uses: ./.github/workflows/build-kit.yaml

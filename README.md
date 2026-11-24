@@ -10,9 +10,9 @@ This repository publishes three kits, and a kit set per lab, to GitHub Container
 |---|---|---|
 | Labspace runtime: the interface, VS Code and a private Docker engine | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/README.md](kit/README.md) |
 | Hello Labspace: a minimal lab (content kit) | `ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin` | [examples/hello-lab/README.md](examples/hello-lab/README.md) |
-| Building Container Images: Best Practices (content kit) | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab` | [examples/building-images-lab/README.md](examples/building-images-lab/README.md) |
+| Building Container Images: Best Practices (content kit) | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab-mixin` | [examples/building-images-lab/README.md](examples/building-images-lab/README.md) |
 | Hello Labspace, ready to run (kit set) | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/README.md](examples/hello-lab/README.md) |
-| Building Container Images: Best Practices, ready to run (kit set) | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set` | [examples/building-images-lab/README.md](examples/building-images-lab/README.md) |
+| Building Container Images: Best Practices, ready to run (kit set) | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab` | [examples/building-images-lab/README.md](examples/building-images-lab/README.md) |
 
 A content kit always runs with the Labspace kit. A lab's kit set merges the two with the `shell` sandbox, so it runs on its own, with no `shell` and no `--kit`. Commands for all of them are in [Published kits](#published-kits-github-actions).
 
@@ -137,9 +137,9 @@ docker buildx build --builder kit-builder examples/hello-lab/set -f examples/hel
 |---|---|---|
 | Labspace runtime | `ghcr.io/mathieu-benoit/labsbxes/labspace` | [kit/](kit) |
 | `hello-lab` content | `ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin` | [examples/hello-lab/](examples/hello-lab) |
-| `building-images-lab` content | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab` | [examples/building-images-lab/](examples/building-images-lab) |
+| `building-images-lab` content | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab-mixin` | [examples/building-images-lab/](examples/building-images-lab) |
 | `hello-lab` kit set | `ghcr.io/mathieu-benoit/labsbxes/hello-lab` | [examples/hello-lab/set/](examples/hello-lab/set) |
-| `building-images-lab` kit set | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set` | [examples/building-images-lab/set/](examples/building-images-lab/set) |
+| `building-images-lab` kit set | `ghcr.io/mathieu-benoit/labsbxes/building-images-lab` | [examples/building-images-lab/set/](examples/building-images-lab/set) |
 
 Run them from a **dedicated, empty folder**. `sbx run` mounts the current folder into the sandbox as its workspace, read-write. Started from your home directory, that would hand the sandbox your SSH keys, cloud and registry credentials, shell history and every other project, which defeats the point of a sandbox. Give it only what the lab needs: with a content kit the lab doesn't use the workspace at all, so an empty folder is enough. (`sbx` also blocks the home directory outright, with `mount "/Users/<you>" overlaps Sandboxes configuration, state or credentials`.)
 
@@ -164,7 +164,7 @@ sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.i
 `building-images-lab` (pin 5050 for its Quote App tab):
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.11 -p 8085:8085 -p 5050:5050 --name building-images-lab
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.11 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab-mixin:0.1.11 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
 Or run either lab from its kit set, one reference with the same ports:
@@ -174,7 +174,7 @@ sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.11 -p 8085:8085 -p 3000:30
 ```
 
 ```bash
-sbx run ghcr.io/mathieu-benoit/labsbxes/building-images-lab-set:0.1.11 -p 8085:8085 -p 5050:5050 --name building-images-lab
+sbx run ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.11 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
 Then open the host port `sbx port ls <name>` lists for sandbox port 3030 (for example `sbx port ls hello-lab`). That host port is picked by `sbx` and changes at every start; add `-p 3030:3030` to any of these commands to open the interface at http://localhost:3030 instead.
