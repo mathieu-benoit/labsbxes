@@ -22,6 +22,7 @@
     "package": "ghcr.io/mathieu-benoit/labsbxes/hello-lab",
     "chips": [
       "content kit",
+      "kit set",
       "starter",
       "port 3000"
     ]
@@ -35,6 +36,7 @@
     "package": "ghcr.io/mathieu-benoit/labsbxes/building-images-lab",
     "chips": [
       "content kit",
+      "kit set",
       "dockerfile",
       "multi-stage",
       "dhi",
