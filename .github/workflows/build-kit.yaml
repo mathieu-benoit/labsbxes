@@ -43,9 +43,14 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  # kit-tck, the Sandbox Kit specification's conformance checker. Pinned, and
-  # verified against the release's checksums.txt before it runs.
-  KIT_TCK_VERSION: 3.0.0-m.12
+  # kit-tck, the Sandbox Kit specification's conformance checker. Pinned to a
+  # release, installed by the spec's setup-tck action (pinned to that release's
+  # commit), which checks the release's checksums.txt and the archive's SHA256
+  # below. To move to a new release, update all three together: this version,
+  # KIT_TCK_SHA256 (the kit-tck_<version>_linux_amd64.tar.gz line of its
+  # checksums.txt) and the setup-tck commit.
+  KIT_TCK_VERSION: 3.0.0-m.14
+  KIT_TCK_SHA256: cc246acdf0343f83a4f80d54fadf889f13e193c4b907d0c6c5a84aec7a46ebd8
 
 jobs:
   build:
@@ -202,17 +207,10 @@ jobs:
       # frontend's own checks cannot see metadata an exporter or a registry drops.
       - name: Install kit-tck
         if: steps.exists.outputs.skip != 'true'
-        run: |
-          set -euo pipefail
-          base="https://github.com/docker/sandbox-kit-spec/releases/download/v${KIT_TCK_VERSION}"
-          archive="kit-tck_${KIT_TCK_VERSION}_linux_amd64.tar.gz"
-          mkdir -p "$RUNNER_TEMP/kit-tck"
-          cd "$RUNNER_TEMP/kit-tck"
-          curl -fsSL -O "$base/$archive"
-          curl -fsSL -O "$base/checksums.txt"
-          grep " ${archive}\$" checksums.txt | sha256sum -c -
-          tar -xzf "$archive"
-          echo "$RUNNER_TEMP/kit-tck" >> "$GITHUB_PATH"
+        uses: docker/sandbox-kit-spec/actions/setup-tck@7c8b7cd53acc7271184b5c66ab0acb9613df56c7 # v3.0.0-m.14
+        with:
+          version: ${{ env.KIT_TCK_VERSION }}
+          sha256: ${{ env.KIT_TCK_SHA256 }}
 
       - name: Validate with kit-tck
         if: steps.exists.outputs.skip != 'true'
