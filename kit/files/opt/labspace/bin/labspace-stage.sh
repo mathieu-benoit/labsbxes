@@ -63,6 +63,21 @@ else
   cp -r "$SRC_LABSPACE" "$INSTRUCTIONS"
 fi
 
+# The interface's tab icon (see labspace.dockerfile): the lab's own
+# labspace/icon.svg if it has one, else the Docker logo. Linked while
+# authoring, so an edited icon shows on reload.
+ICON=/labspace/icon.svg
+rm -f "$ICON"
+if [ -f "$SRC_LABSPACE/icon.svg" ]; then
+  if [ "${LABSPACE_DEV_MODE:-false}" = "true" ] && [ "$SOURCE" = "workspace" ]; then
+    ln -s "$SRC_LABSPACE/icon.svg" "$ICON"
+  else
+    cp "$SRC_LABSPACE/icon.svg" "$ICON"
+  fi
+else
+  cp /opt/labspace/interface/public/docker.svg "$ICON"
+fi
+
 # The built-in lab names where it looked and which sandbox this is.
 if [ "$SOURCE" = "built-in" ]; then
   esc() { printf '%s' "$1" | sed 's/[\\|&]/\\&/g'; }

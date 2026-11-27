@@ -100,6 +100,8 @@ sbx run shell --kit ./kit --kit ./examples/hello-lab -p 8085:8085 -p 3000:3000 -
 
 [examples/hello-lab](examples/hello-lab) is both a content repo and a content kit: [hello-lab.yaml](examples/hello-lab/hello-lab.yaml) (a mixin that `requires` the Labspace kit and `provides` `labspace-content`) and [hello-lab.dockerfile](examples/hello-lab/hello-lab.dockerfile) (`FROM scratch`, copies `labspace/` and `project/` to `/opt/labspace/content`). To make your own lab a kit, add those two files to its repo, adjusting the name and version. If the lab runs an app the learner opens, declare its port in the content kit with `port@1`, as hello-lab does for 3000: the lab then publishes what it needs whatever `appPort` is set to, and two kits declaring the same port are a single publication.
 
+A lab can bring its own icon: an `icon.svg` next to `labspace.yaml` (`labspace/icon.svg`) becomes the browser tab icon of the interface, as hello-lab's does. Without one, the tab keeps the Docker logo. It works the same for a content kit, since `labspace/` is copied whole, and for a workspace content repo; with `devMode=true` an edited icon shows on reload (browsers cache tab icons, so a hard reload may be needed).
+
 When the content comes from a kit, the instructions are read from the kit, and `project/` is copied once to `~/project` in the sandbox, which is what the IDE opens. The learner's edits stay in the sandbox and survive `sbx stop`/`sbx run`; they are not written to the host. If the workspace itself contains a `labspace/labspace.yaml`, that wins over the kit, which is what makes authoring against a published kit possible.
 
 The resolver enforces the pairing: the content kit alone fails with `requires "labspace >= 0.1.0" but nothing in the set provides it`, and two content kits conflict because both provide `labspace-content`.
@@ -249,7 +251,7 @@ site/                    # the GitHub Pages landing page: kits.json, build.sh, i
 
 1. **Create (once):** `labspace-init.sh` (root) makes `/etc/labspace-support/*` and an ES256 keypair.
 2. **Every boot:** the runtime starts the sandbox's Docker engine, then runs the startup hooks in order:
-   1. `labspace-stage.sh` picks the content (`<workspace>/labspace/labspace.yaml` if present, else a content kit's `/opt/labspace/content`), warns with the fix and stops if there is neither, stages the instructions, records the project folder in `/labspace/project-dir`, and writes the metadata the interface reads.
+   1. `labspace-stage.sh` picks the content (`<workspace>/labspace/labspace.yaml` if present, else a content kit's `/opt/labspace/content`), warns with the fix and stops if there is neither, stages the instructions and the lab's icon (`/labspace/icon.svg`), records the project folder in `/labspace/project-dir`, and writes the metadata the interface reads.
    2. `labspace-ide.sh` (background) starts code-server on `:8085`, opened on that project folder.
    3. `labspace-ui.sh` (background) starts the interface on `:3030`.
 3. **Run button:** the browser sends a code block index, the interface reads the command from the markdown on disk, signs a 15 s JWT and POSTs it to the extension's unix socket, and the extension types it in the IDE terminal. Unchanged from labspace-infra.

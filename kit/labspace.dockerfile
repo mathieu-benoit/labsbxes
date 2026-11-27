@@ -70,6 +70,15 @@ RUN <<'EOF'
 set -eux
 chmod 0755 /out/opt/labspace/bin/*
 
+# The lab's own icon. The interface's tab icon is /docker.svg; point it at
+# /labspace-icon.svg, a link to /labspace/icon.svg, which labspace-stage.sh
+# fills at every boot from the lab's labspace/icon.svg (or with docker.svg).
+# The link is dangling until then: /labspace only exists in the sandbox.
+pub=/out/opt/labspace/interface/public
+grep -q 'href="/docker.svg"' "$pub/index.html"
+sed -i 's#href="/docker.svg"#href="/labspace-icon.svg"#' "$pub/index.html"
+ln -s /labspace/icon.svg "$pub/labspace-icon.svg"
+
 mkdir -p /out/usr/lib /out/usr/bin /out/home/agent/.local/share/code-server /out/etc/labspace-support /out/labspace
 cp -a /usr/lib/code-server /out/usr/lib/code-server
 cp -a /usr/bin/code-server /out/usr/bin/code-server

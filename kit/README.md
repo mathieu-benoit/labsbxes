@@ -10,6 +10,8 @@ The kit carries the runtime, not a lab. The lab comes from one of these, first m
 2. a content kit composed with it, such as [hello-lab](../examples/hello-lab) or [building-images-lab](../examples/building-images-lab)
 3. neither: a built-in getting-started lab that explains how to add one
 
+Either way, a lab can bring its own browser tab icon as `labspace/icon.svg`, next to its `labspace.yaml`; without one the tab shows the Docker logo.
+
 ## Run it
 
 Allow the registry namespace once (by default `sbx` only installs kits from `docker.io/` and `dhi.io/`):

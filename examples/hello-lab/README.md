@@ -52,7 +52,7 @@ Your edits in the IDE stay in the sandbox and survive `sbx stop` and `sbx run --
 
 This folder is both a content repo and a content kit:
 
-- [labspace/](labspace) and [project/](project): the lab, in the labspace-infra layout
+- [labspace/](labspace) and [project/](project): the lab, in the labspace-infra layout, plus [labspace/icon.svg](labspace/icon.svg), the lab's own browser tab icon
 - [hello-lab.yaml](hello-lab.yaml): the descriptor, a mixin that `requires` the Labspace kit, `provides` `labspace-content` and declares port 3000
 - [hello-lab.dockerfile](hello-lab.dockerfile): copies the two folders to `/opt/labspace/content`
 - [set/hello-lab-set.yaml](set/hello-lab-set.yaml): the kit set, `shell` + the Labspace kit + this kit, published as `hello-lab`
