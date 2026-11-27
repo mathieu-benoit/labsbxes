@@ -300,6 +300,7 @@ Tested with sbx 0.53 on Windows, using `examples/hello-lab`:
 | Before the built-in lab: no content meant a failed startup hook, nothing listening and a blank browser | (the reason it exists) |
 | `kind: set` built from both kits and pushed to a local registry: merged descriptor is a `mixin`, provides the union, members pinned by digest, 1 install + 3 startup hooks | Pass (descriptor inspected) |
 | Each lab's kit set (`shell` + Labspace kit + content kit) built for amd64 and arm64, and run with `sbx run ./examples/<lab>/set`: one workload, lab served, IDE and Run buttons work, Docker works (sbx 0.54) | Pass |
+| Lab icon: hello-lab as a content kit serves its `labspace/icon.svg` at `/labspace-icon.svg` (`image/svg+xml`), the tab icon the interface links to; with no lab the built-in one gets the Docker logo; with a workspace and `devMode=true` it is a link to the workspace file | Pass |
 | Two content kits composed together is refused; content kit baked into the set while the workspace has its own `labspace/` | Not tested |
 | macOS / Linux hosts, `--cloud` sandboxes, content bigger than the sample | Not tested |
 
