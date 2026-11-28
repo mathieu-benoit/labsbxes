@@ -58,6 +58,20 @@
     ]
   },
   {
+    "id": "score-labspace",
+    "url": "https://score-spec.github.io/score-labspace/sbx.html",
+    "icon": "music_note",
+    "title": "Score Labspace",
+    "description": "A lab from its own repository, built on these kits: the Labspace kit with the lab's content kit (score-compose, score-k8s and a Kind cluster), also published as a single kit set.",
+    "chips": [
+      "external",
+      "kit set",
+      "score",
+      "kubernetes",
+      "port 8080"
+    ]
+  },
+  {
     "id": "compare",
     "page": "pages/compare.html",
     "icon": "compare_arrows",
