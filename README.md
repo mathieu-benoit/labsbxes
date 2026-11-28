@@ -122,20 +122,20 @@ A `kind: set` merges kits into one published kit. Each example lab has one, in i
 ```yaml
 kits:
   - ref: docker.io/sbx/shell:latest                              # the workload
-  - ref: ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.13         # provides labspace
-  - ref: ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin:0.1.13        # requires it
+  - ref: ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.14         # provides labspace
+  - ref: ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin:0.1.14        # requires it
 ```
 
 Because the set holds the `shell` workload, it publishes as a **workload**: learners run the set itself, with no `shell` and no `--kit`. The build records each member's digest, so a published set never changes, `shell` included. It can't be layered onto another agent, since a sandbox has a single workload; for that, pass the kits with `--kit` as above.
 
 ```bash
-sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.13 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.14 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 To build one yourself, publish its members first, then the set:
 
 ```bash
-docker buildx build --builder kit-builder examples/hello-lab/set -f examples/hello-lab/set/hello-lab-set.yaml -t docker.io/<you>/hello-lab:0.1.13 --push
+docker buildx build --builder kit-builder examples/hello-lab/set -f examples/hello-lab/set/hello-lab-set.yaml -t docker.io/<you>/hello-lab:0.1.14 --push
 ```
 
 `kit-builder` is a `docker-container` builder (`docker buildx create --name kit-builder --driver docker-container --bootstrap`), as in the [spec README](https://github.com/docker/sandbox-kit-spec#building-a-kit). `sbx run ./examples/hello-lab/set` also runs a set from source: the members are still pulled from the registry.
@@ -163,29 +163,29 @@ Then start one of the labs from that folder.
 The built-in getting-started lab (Labspace kit only):
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.13 -p 8085:8085 --name labspace
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.14 -p 8085:8085 --name labspace
 ```
 
 `hello-lab` (pin 3000 for its tab link):
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.13 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin:0.1.13 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.14 --kit ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin:0.1.14 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 `building-images-lab` (pin 5050 for its Quote App tab):
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.13 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab-mixin:0.1.13 -p 8085:8085 -p 5050:5050 --name building-images-lab
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.14 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab-mixin:0.1.14 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
 Or run either lab from its kit set, one reference with the same ports:
 
 ```bash
-sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.13 -p 8085:8085 -p 3000:3000 --name hello-lab
+sbx run ghcr.io/mathieu-benoit/labsbxes/hello-lab:0.1.14 -p 8085:8085 -p 3000:3000 --name hello-lab
 ```
 
 ```bash
-sbx run ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.13 -p 8085:8085 -p 5050:5050 --name building-images-lab
+sbx run ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.14 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
 Then open the host port `sbx port ls <name>` lists for sandbox port 3030 (for example `sbx port ls hello-lab`). That host port is picked by `sbx` and changes at every start; add `-p 3030:3030` to any of these commands to open the interface at http://localhost:3030 instead.
