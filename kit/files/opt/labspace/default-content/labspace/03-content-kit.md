@@ -90,5 +90,6 @@ Open the host port listed for sandbox port 3030.
 
 - With a content kit, `project/` is copied once into the sandbox. The learner's edits stay in the sandbox and survive `sbx stop` and `sbx run`, but not `sbx rm`.
 - A kit that is not composed with the Labspace kit fails with `requires "labspace >= 0.1.0"`, and two content kits conflict.
+- To give the lab its own browser tab icon, add an SVG as `my-lab/labspace/icon.svg`, next to `labspace.yaml`. Without one, the tab shows the Docker logo.
 - If the workspace folder itself contains a `labspace/labspace.yaml`, it takes priority over the content kit.
 - A port declared with `port@1` gets a host port that `sbx` picks, and picks again at every start: a kit can't choose it. If the lab links to the app on a fixed `localhost` port, the learner still pins it with `-p`, for example `-p 3000:3000`.
