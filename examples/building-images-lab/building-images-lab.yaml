@@ -1,9 +1,9 @@
 # syntax=docker/sandbox-kit:3
 #
 # The "Building Container Images: Best Practices" lab as a content kit. Its
-# labspace/ and project/ folders are copied as they are from
-# https://github.com/dockersamples/labspace-building-images; everything that
-# runs them comes from the Labspace kit (../../kit).
+# labspace/ and project/ folders are not copied here: the build fetches them
+# from the lab's own repository, at the commit pinned in `args` below.
+# Everything that runs them comes from the Labspace kit (../../kit).
 #
 #   sbx run shell --kit <labspace kit> --kit <this kit>
 schemaVersion: "3"
@@ -28,6 +28,23 @@ requires: ["labspace >= 0.1.0"]
 # One lab per sandbox: a second content kit provides the same name, and the
 # runtime refuses the composition.
 provides: ["labspace-content@0.1.13"]
+
+# BUILD phase: where the lab's content comes from. The Dockerfile checks out
+# contentRepo at contentRef and keeps its labspace/ and project/ folders. Pin a
+# commit, so that a rebuild of a version gives the same content; to take a
+# newer one, move contentRef and bump `version`. Override them for one build
+# with --build-arg contentRef=<commit>.
+args:
+  contentRepo:
+    default: "https://github.com/dockersamples/labspace-building-images.git"
+    pattern: '^https://[^[:space:]#]+$'
+    description: Git repository holding the lab's labspace/ and project/ folders
+    buildArg: CONTENT_REPO
+  contentRef:
+    default: "64d24db00d7e59daf75499b120e6263bb9a1c330"
+    pattern: '^[A-Za-z0-9._/-]+$'
+    description: Commit (or tag, or branch) of contentRepo to build from; a commit is reproducible
+    buildArg: CONTENT_REF
 
 capabilities:
   # The lab runs its Quote App on port 5050 (docker run -p 5050:5050) and opens

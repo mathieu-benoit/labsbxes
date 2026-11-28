@@ -4,7 +4,7 @@
 
 The [labspace-building-images](https://github.com/dockersamples/labspace-building-images) lab from dockersamples, packaged as a content kit for the [Labspace kit](../../kit). The learner takes a small Python web app (the Quote App) and turns a basic Dockerfile into a production-grade image: layer caching, multi-stage builds, non-root users, base images and build secrets, all on the sandbox's own Docker engine.
 
-The kit only carries the lab's content (`labspace/` and `project/`), so it always runs together with the Labspace kit.
+The kit only carries the lab's content (`labspace/` and `project/`), so it always runs together with the Labspace kit. That content isn't kept in this folder: the build fetches it from the lab's own repository, at a pinned commit (see [Source](#source)).
 
 ## Run it
 
@@ -54,9 +54,12 @@ Your edits in the IDE stay in the sandbox and survive `sbx stop` and `sbx run --
 
 ## Source
 
-- [labspace/](labspace) and [project/](project): copied as they are from [dockersamples/labspace-building-images](https://github.com/dockersamples/labspace-building-images)
-- [building-images-lab.yaml](building-images-lab.yaml): the descriptor, a mixin that `requires` the Labspace kit, `provides` `labspace-content` and declares port 5050
-- [building-images-lab.dockerfile](building-images-lab.dockerfile): copies the two folders to `/opt/labspace/content`
+This folder holds the kit, not the lab. The lab is [dockersamples/labspace-building-images](https://github.com/dockersamples/labspace-building-images), fetched at build time:
+
+- [building-images-lab.yaml](building-images-lab.yaml): the descriptor, a mixin that `requires` the Labspace kit, `provides` `labspace-content` and declares port 5050. Its two build args name the content: `contentRepo` (that repository) and `contentRef` (the commit it is pinned to).
+- [building-images-lab.dockerfile](building-images-lab.dockerfile): checks out `contentRepo` at `contentRef` and copies only its `labspace/` and `project/` to `/opt/labspace/content`
+
+To take newer content from the repository, move `contentRef` to its new commit and bump `version`. To build once from another commit: `docker buildx build --builder kit-builder examples/building-images-lab -f examples/building-images-lab/building-images-lab.yaml --build-arg contentRef=<commit> ...`.
 - [set/building-images-lab-set.yaml](set/building-images-lab-set.yaml): the kit set, `shell` + the Labspace kit + this kit, published as `building-images-lab`
 
 From a clone of the repository, run it from source with `sbx run shell --kit ./kit --kit ./examples/building-images-lab -p 8085:8085 -p 5050:5050 --name building-images-lab`.

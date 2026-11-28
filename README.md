@@ -106,6 +106,15 @@ When the content comes from a kit, the instructions are read from the kit, and `
 
 The resolver enforces the pairing: the content kit alone fails with `requires "labspace >= 0.1.0" but nothing in the set provides it`, and two content kits conflict because both provide `labspace-content`.
 
+### Content from another repository
+
+The content kit doesn't have to sit next to the content. When the lab lives in its own repository (a labspace-infra content repo, for example), the kit can fetch its `labspace/` and `project/` folders at build time instead of keeping a copy: [examples/building-images-lab](examples/building-images-lab) does this for [dockersamples/labspace-building-images](https://github.com/dockersamples/labspace-building-images).
+
+- Its descriptor, [building-images-lab.yaml](examples/building-images-lab/building-images-lab.yaml), declares two build args: `contentRepo` (the Git URL) and `contentRef` (a commit, pinned).
+- Its Dockerfile, [building-images-lab.dockerfile](examples/building-images-lab/building-images-lab.dockerfile), checks out that commit with `ADD <repo>#<ref>` and copies only the two folders to `/opt/labspace/content`. The rest of the repository is left out.
+
+To do the same for another lab, copy those two files, then set the name, the version, the two args and the lab's ports. Because the fetch happens at build time, the published kit carries the files: the sandbox needs no access to GitHub, and a published version doesn't change when the repository does. Taking newer content is a commit: move `contentRef` and bump `version`. For a one-off build from another commit, pass `--build-arg contentRef=<commit>` to `docker buildx build`. The repository must be readable by the builder (public, or with a Git auth secret passed to the build).
+
 ### Giving the lab a single reference
 
 A `kind: set` merges kits into one published kit. Each example lab has one, in its own `set/` folder so that `--kit ./examples/<lab>` still finds the content kit's descriptor alone: [hello-lab-set.yaml](examples/hello-lab/set/hello-lab-set.yaml) and [building-images-lab-set.yaml](examples/building-images-lab/set/building-images-lab-set.yaml). Each lists three members, which must be registry references (local paths are refused):
@@ -242,7 +251,7 @@ kit/
     home/agent/.local/share/code-server/User/settings.json
 examples/hello-lab/      # a tiny lab: a content repo, and (hello-lab.yaml/.dockerfile) a content kit
   set/hello-lab-set.yaml #   its kit set: shell + the Labspace kit + the content kit
-examples/building-images-lab/ # dockersamples/labspace-building-images as a content kit (Quote App on 5050)
+examples/building-images-lab/ # a content kit fetching dockersamples/labspace-building-images at build time (Quote App on 5050)
   set/building-images-lab-set.yaml
 site/                    # the GitHub Pages landing page: kits.json, build.sh, index.html, app.js, style.css, pages/
 ```
@@ -301,6 +310,7 @@ Tested with sbx 0.53 on Windows, using `examples/hello-lab`:
 | `kind: set` built from both kits and pushed to a local registry: merged descriptor is a `mixin`, provides the union, members pinned by digest, 1 install + 3 startup hooks | Pass (descriptor inspected) |
 | Each lab's kit set (`shell` + Labspace kit + content kit) built for amd64 and arm64, and run with `sbx run ./examples/<lab>/set`: one workload, lab served, IDE and Run buttons work, Docker works (sbx 0.54) | Pass |
 | Lab icon: hello-lab as a content kit serves its `labspace/icon.svg` at `/labspace-icon.svg` (`image/svg+xml`), the tab icon the interface links to; with no lab the built-in one gets the Docker logo; with a workspace and `devMode=true` it is a link to the workspace file | Pass |
+| Content from another repository: building-images-lab built with `sbx run --kit ./kit --kit ./examples/building-images-lab` fetches dockersamples/labspace-building-images at the pinned commit; the sandbox gets only its `labspace/` and `project/`, `~/project` is seeded and the interface serves the lab | Pass |
 | Two content kits composed together is refused; content kit baked into the set while the workspace has its own `labspace/` | Not tested |
 | macOS / Linux hosts, `--cloud` sandboxes, content bigger than the sample | Not tested |
 

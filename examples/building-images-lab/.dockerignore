@@ -1,6 +1,5 @@
-# Keep the build context to the lab's content.
+# The content comes from the lab's repository (see the descriptor's args), so
+# the build context is only the two kit files.
 *
-!labspace
-!project
 !building-images-lab.yaml
 !building-images-lab.dockerfile
