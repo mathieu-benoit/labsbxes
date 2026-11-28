@@ -21,7 +21,7 @@ displayName: "Hello Labspace (Labspace on Docker Sandboxes)"
 description: >-
   The "Hello Labspace on Docker Sandboxes" lab, ready to run: the `shell` sandbox (bash and a Docker engine), the Labspace kit (interface and IDE) and the lab's content kit, merged into one workload.
 
-version: "0.1.12"
+version: "0.1.13"
 
 # Becomes the org.opencontainers.image.source annotation, which is what links
 # the published GHCR package to this repository.
@@ -32,6 +32,6 @@ kits:
   # in the set (a set may have at most one).
   - ref: docker.io/sbx/shell:latest
   # The Labspace interface and VS Code (code-server). Provides `labspace`.
-  - ref: ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.12
+  - ref: ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.13
   # This lab's content, which requires the Labspace kit.
-  - ref: ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin:0.1.12
+  - ref: ghcr.io/mathieu-benoit/labsbxes/hello-lab-mixin:0.1.13
