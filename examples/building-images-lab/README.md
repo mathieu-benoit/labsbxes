@@ -21,13 +21,13 @@ mkdir -p ~/sbx-lab && cd ~/sbx-lab
 ```
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.13 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab-mixin:0.1.13 -p 8085:8085 -p 5050:5050 --name building-images-lab
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.14 --kit ghcr.io/mathieu-benoit/labsbxes/building-images-lab-mixin:0.1.14 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
 Or, as a single reference, its kit set (`ghcr.io/mathieu-benoit/labsbxes/building-images-lab`), which merges the `shell` sandbox, the Labspace kit and this kit into one workload:
 
 ```bash
-sbx run ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.13 -p 8085:8085 -p 5050:5050 --name building-images-lab
+sbx run ghcr.io/mathieu-benoit/labsbxes/building-images-lab:0.1.14 -p 8085:8085 -p 5050:5050 --name building-images-lab
 ```
 
 Then run `sbx port ls building-images-lab` and open `http://127.0.0.1:<HOST PORT>/`, with the host port listed for sandbox port 3030. By default that host port is picked by `sbx` and changes at every start. To skip that lookup, add `-p 3030:3030` to the command: the interface is then always at http://localhost:3030 (if that host port is free).
